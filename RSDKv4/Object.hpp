@@ -3,7 +3,11 @@
 
 #define NATIVEENTITY_COUNT (0x100)
 
+#if RETRO_VANILLA_LIKE
+#define ENTITY_COUNT     (0x400)
+#else
 #define ENTITY_COUNT     (0x1000)
+#endif
 #define TEMPENTITY_START (ENTITY_COUNT - 0x80)
 #define OBJECT_COUNT     (0x100)
 #define TYPEGROUP_COUNT  (0x103)
@@ -59,6 +63,7 @@ struct Entity {
     byte down;
     byte jumpPress;
     byte jumpHold;
+    byte keyFlip;
     byte scrollTracking;
     // was 3 on S1 release, but bumped up to 5 for S2
     byte floorSensors[RETRO_REV00 ? 3 : 5];

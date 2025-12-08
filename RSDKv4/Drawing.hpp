@@ -1,8 +1,13 @@
 #ifndef DRAWING_H
 #define DRAWING_H
 
-#define SURFACE_COUNT (32)
-#define GFXDATA_SIZE  (0x2400 * 0x2400)
+#if RETRO_VANILLA_LIKE
+#define SURFACE_COUNT (24)
+#define GFXDATA_SIZE  (0x800 * 0x800)
+#else
+#define SURFACE_COUNT (64)
+#define GFXDATA_SIZE  (0x4000 * 0x4000)
+#endif
 
 #if RETRO_REV03
 #define DRAWLAYER_COUNT (8)
@@ -73,6 +78,8 @@ extern float touchWidthF;
 extern float touchHeightF;
 
 extern DrawListEntry drawListEntries[DRAWLAYER_COUNT];
+extern byte drawLayerDirection[DRAWLAYER_COUNT];
+extern byte screenDirection;
 
 extern int gfxDataPosition;
 extern GFXSurface gfxSurface[SURFACE_COUNT];
@@ -101,6 +108,9 @@ inline void ClearGraphicsData()
 {
     for (int i = 0; i < SURFACE_COUNT; ++i) MEM_ZERO(gfxSurface[i]);
     gfxDataPosition = 0;
+    
+    for (int i = 0; i < DRAWLAYER_COUNT; ++i) drawLayerDirection[i] = FLIP_NONE;
+    screenDirection = FLIP_NONE;
 }
 void ClearScreen(byte index);
 void SetScreenDimensions(int width, int height);
@@ -112,9 +122,9 @@ void CopyFrameOverlay2x();
 
 void SetupViewport();
 void SetFullScreen(bool fs);
-void SetScreenBrightness(float brightness);
 
 // Layer Drawing
+void FlipFrameBuffer(byte direction);
 void DrawObjectList(int layer);
 void DrawStageGFX();
 #if !RETRO_USE_ORIGINAL_CODE

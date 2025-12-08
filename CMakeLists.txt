@@ -30,6 +30,10 @@ endif()
 
 set(RETRO_SDL_VERSION 2 CACHE STRING "Select between SDL2 and SDL1, defaults to SDL2")
 
+option(RETRO_VANILLA_LIKE "Brings back the normal v4 limitations." OFF)
+
+set(RETRO_ICON_NAME "RSDKv4 Decomp Icon.ico" CACHE STRING "Icon filename to embed in the executable. Defaults to RSDKv4 Decomp Icon.")
+
 set(STEAMWORKS_SDK_DIR "${CMAKE_SOURCE_DIR}/dependencies/all/steamworks_sdk")
 set(DISCORD_SDK_DIR "${CMAKE_SOURCE_DIR}/dependencies/all/discord_game_sdk")
 
@@ -303,9 +307,11 @@ target_compile_definitions(RetroEngine PRIVATE
     RETRO_USE_DISCORD_SDK=$<BOOL:${RETRO_USE_DISCORD}>
     RETRO_CHECKUPDATE=$<BOOL:${RETRO_UPDATE_CHECKER}>
     RETRO_ACCEPT_OLD_SYNTAX=$<BOOL:${RETRO_ACCEPT_OLD_SYNTAX}>
+    RETRO_VANILLA_LIKE=$<BOOL:${RETRO_VANILLA_LIKE}>
 
     RSDK_AUTOBUILD=$<BOOL:${RETRO_DISABLE_PLUS}>
 
     RETRO_DEV_EXTRA="${PLATFORM} - ${CMAKE_CXX_COMPILER_ID}"
     DECOMP_VERSION="${DECOMP_VERSION}"
+    RETRO_ICON_NAME="${RETRO_ICON_NAME}"
 )

@@ -135,6 +135,8 @@ void ProcessStage(void)
 
     switch (stageMode) {
         case STAGEMODE_LOAD: // Startup
+			ClearGraphicsData();
+			ClearAnimationData();
             SetActivePalette(0, 0, 256);
             gameMenu[0].visibleRowOffset = 0;
             gameMenu[1].alignment        = 0;
@@ -175,13 +177,17 @@ void ProcessStage(void)
                 case GAME_SONIC1:
                 case GAME_SONIC2:
                 case GAME_SONIC3:
+                // Forever and Absolute has its own Amy, so....
                     if (GetGlobalVariableByName("game.hasPlusDLC") == false) { // prevent players from using Amy without DLC.
                         if (GetGlobalVariableByName("PLAYER_AMY") && playerListPos == GetGlobalVariableByName("PLAYER_AMY"))
                             playerListPos = 0;
                         else if (GetGlobalVariableByName("PLAYER_AMY_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_AMY_TAILS"))
                             playerListPos = 0;
+                        else if (GetGlobalVariableByName("PLAYER_AMY") && (GetGlobalVariableByName("stage.player2Enabled")))
+                            playerListPos = 0;
                     }
                 break;
+
                 case GAME_SONICCD:
                     if (GetGlobalVariableByName("game.hasPlusDLC") == false) { // prevent players from using Knuckles or Amy without DLC, like OG Sonic CD would.
                         if (GetGlobalVariableByName("PLAYER_KNUCKLES") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES"))
@@ -191,6 +197,20 @@ void ProcessStage(void)
                         else if (GetGlobalVariableByName("PLAYER_AMY") && playerListPos == GetGlobalVariableByName("PLAYER_AMY"))
                             playerListPos = 0;
                         else if (GetGlobalVariableByName("PLAYER_AMY_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_AMY_TAILS"))
+                            playerListPos = 0;
+                        else if (GetGlobalVariableByName("PLAYER_KNUCKLES") && (GetGlobalVariableByName("stage.player2Enabled")))
+                            playerListPos = 0;
+                        else if (GetGlobalVariableByName("PLAYER_AMY") && (GetGlobalVariableByName("stage.player2Enabled")))
+                            playerListPos = 0;
+                    }
+
+                case GAME_SONICCDINFINITE:
+                    if (GetGlobalVariableByName("game.hasPlusDLC") == false) { // prevent players from using Knuckles or Amy without DLC, like OG Sonic CD would.
+                        if (GetGlobalVariableByName("PLAYER_KNUCKLES") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES"))
+                            playerListPos = 0;
+                        else if (GetGlobalVariableByName("PLAYER_KNUCKLES_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES_TAILS"))
+                            playerListPos = 0;
+                        else if (GetGlobalVariableByName("PLAYER_KNUCKLES") && (GetGlobalVariableByName("stage.player2Enabled")))
                             playerListPos = 0;
                     }
                 break;
@@ -204,6 +224,8 @@ void ProcessStage(void)
                         playerListPos = 0;
                     else if (GetGlobalVariableByName("PLAYER_AMY_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_AMY_TAILS"))
                         playerListPos = 0;
+                    else if (GetGlobalVariableByName("PLAYER_AMY") && (GetGlobalVariableByName("stage.player2Enabled")))
+                        playerListPos = 0;
                     break;
 
                 case GAME_SONICCD: // prevent players from using Knuckles or Amy without DLC, like OG Sonic CD would.
@@ -214,6 +236,19 @@ void ProcessStage(void)
                     else if (GetGlobalVariableByName("PLAYER_AMY") && playerListPos == GetGlobalVariableByName("PLAYER_AMY"))
                         playerListPos = 0;
                     else if (GetGlobalVariableByName("PLAYER_AMY_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_AMY_TAILS"))
+                        playerListPos = 0;
+                    else if (GetGlobalVariableByName("PLAYER_KNUCKLES") && (GetGlobalVariableByName("stage.player2Enabled")))
+                        playerListPos = 0;
+                    else if (GetGlobalVariableByName("PLAYER_AMY") && (GetGlobalVariableByName("stage.player2Enabled")))
+                        playerListPos = 0;
+                    break;
+
+                case GAME_SONICCDINFINITE: // prevent players from using Knuckles without DLC
+                    if (GetGlobalVariableByName("PLAYER_KNUCKLES") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES"))
+                        playerListPos = 0;
+                    else if (GetGlobalVariableByName("PLAYER_KNUCKLES_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES_TAILS"))
+                        playerListPos = 0;
+                    else if (GetGlobalVariableByName("PLAYER_KNUCKLES") && (GetGlobalVariableByName("stage.player2Enabled")))
                         playerListPos = 0;
                     break;
             }
@@ -336,6 +371,7 @@ void ProcessStage(void)
             gfxVertexSizeOpaque = 0;
 #endif
 
+            FlipFrameBuffer(screenDirection);
             DrawObjectList(0);
             DrawObjectList(1);
             DrawObjectList(2);
@@ -350,6 +386,7 @@ void ProcessStage(void)
                 DrawObjectList(7);
 #endif
             DrawObjectList(6);
+            FlipFrameBuffer(screenDirection);
 
 #if !RETRO_USE_ORIGINAL_CODE
             DrawDebugOverlays();
@@ -511,6 +548,7 @@ void ProcessStage(void)
 
                 keyPress[0].C = false;
                 ProcessPausedObjects();
+                FlipFrameBuffer(screenDirection);
                 DrawObjectList(0);
                 DrawObjectList(1);
                 DrawObjectList(2);
@@ -525,6 +563,7 @@ void ProcessStage(void)
                     DrawObjectList(7);
 #endif
                 DrawObjectList(6);
+                FlipFrameBuffer(screenDirection);
 
 #if !RETRO_USE_ORIGINAL_CODE
                 DrawDebugOverlays();
@@ -671,7 +710,9 @@ void LoadStageFiles(void)
             CloseFile();
         }
 
-        if (loadGlobalScripts && LoadFile("Data/Game/GameConfig.bin", &info)) {
+        if (LoadFile("Data/Game/GameConfig.bin", &info)) {
+            byte globalObjectCount = 0;
+            
             FileRead(&fileBuffer, 1);
             FileRead(&strBuffer, fileBuffer);
             FileRead(&fileBuffer, 1);
@@ -683,14 +724,14 @@ void LoadStageFiles(void)
                 SetPaletteEntry(-1, c, buf[0], buf[1], buf[2]);
             }
 
-            byte globalObjectCount = 0;
-            FileRead(&globalObjectCount, 1);
-            for (byte i = 0; i < globalObjectCount; ++i) {
-                FileRead(&fileBuffer2, 1);
-                FileRead(strBuffer, fileBuffer2);
-                strBuffer[fileBuffer2] = 0;
-                SetObjectTypeName(strBuffer, scriptID + i);
-            }
+			if (loadGlobalScripts) {
+				FileRead(&globalObjectCount, 1);
+				for (byte i = 0; i < globalObjectCount; ++i) {
+					FileRead(&fileBuffer2, 1);
+					FileRead(strBuffer, fileBuffer2);
+					strBuffer[fileBuffer2] = 0;
+					SetObjectTypeName(strBuffer, scriptID + i);
+				}
 
 #if RETRO_USE_MOD_LOADER && RETRO_USE_COMPILER
             for (byte i = 0; i < modObjCount && loadGlobalScripts; ++i) {
@@ -700,47 +741,48 @@ void LoadStageFiles(void)
 
 #if RETRO_USE_COMPILER
 #if !RETRO_USE_ORIGINAL_CODE
-            bool bytecodeExists = false;
-            FileInfo bytecodeInfo;
-            GetFileInfo(&bytecodeInfo);
-            CloseFile();
-            if (LoadFile("Bytecode/GlobalCode.bin", &info)) {
-                bytecodeExists = true;
+                bool bytecodeExists = false;
+                FileInfo bytecodeInfo;
+                GetFileInfo(&bytecodeInfo);
                 CloseFile();
-            }
-            SetFileInfo(&bytecodeInfo);
-
-            if (bytecodeExists && !forceUseScripts) {
+                if (LoadFile("Bytecode/GlobalCode.bin", &info)) {
+                    bytecodeExists = true;
+                    CloseFile();
+                }
+                SetFileInfo(&bytecodeInfo);
+    
+                if (bytecodeExists && !forceUseScripts) {
 #else
-            if (Engine.usingBytecode) {
+                if (Engine.usingBytecode) {
 #endif
+                    GetFileInfo(&infoStore);
+                    CloseFile();
+                    LoadBytecode(4, scriptID);
+                    scriptID += globalObjectCount;
+                    SetFileInfo(&infoStore);
+                }
+                else {
+                    for (byte i = 0; i < globalObjectCount; ++i) {
+                        FileRead(&fileBuffer2, 1);
+                        FileRead(strBuffer, fileBuffer2);
+                        strBuffer[fileBuffer2] = 0;
+                        GetFileInfo(&infoStore);
+                        CloseFile();
+                        ParseScriptFile(strBuffer, scriptID++);
+                        SetFileInfo(&infoStore);
+                        if (Engine.gameMode == ENGINE_SCRIPTERROR)
+                            return;
+                     }
+                }
+#else
                 GetFileInfo(&infoStore);
                 CloseFile();
                 LoadBytecode(4, scriptID);
                 scriptID += globalObjectCount;
                 SetFileInfo(&infoStore);
-            }
-            else {
-                for (byte i = 0; i < globalObjectCount; ++i) {
-                    FileRead(&fileBuffer2, 1);
-                    FileRead(strBuffer, fileBuffer2);
-                    strBuffer[fileBuffer2] = 0;
-                    GetFileInfo(&infoStore);
-                    CloseFile();
-                    ParseScriptFile(strBuffer, scriptID++);
-                    SetFileInfo(&infoStore);
-                    if (Engine.gameMode == ENGINE_SCRIPTERROR)
-                        return;
-                }
-            }
-#else
-            GetFileInfo(&infoStore);
-            CloseFile();
-            LoadBytecode(4, scriptID);
-            scriptID += globalObjectCount;
-            SetFileInfo(&infoStore);
 #endif
-            CloseFile();
+            }
+                CloseFile();
 
 #if RETRO_USE_MOD_LOADER
             Engine.LoadXMLPalettes();
@@ -885,6 +927,7 @@ void LoadStageFiles(void)
     Init3DFloorBuffer(0);
     ProcessStartupObjects();
 }
+
 int LoadActFile(const char *ext, int stageID, FileInfo *info)
 {
     char dest[0x40];

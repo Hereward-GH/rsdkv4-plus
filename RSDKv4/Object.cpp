@@ -352,11 +352,22 @@ void ProcessObjectControl(Entity *entity)
 {
 	if (entity->controlMode < DEFAULT_INPUT_COUNT && entity->controlMode >= 0) {
 		int deviceID = entity->controlMode;
-		entity->up   = keyDown[deviceID].up;
-		entity->down = keyDown[deviceID].down;
+		if (entity->keyFlip == FLIP_Y || entity->keyFlip == FLIP_XY) {
+			entity->up   = keyDown[deviceID].down;
+			entity->down = keyDown[deviceID].up;
+		} else {
+			entity->up   = keyDown[deviceID].up;
+			entity->down = keyDown[deviceID].down;
+		}
+		
 		if (!keyDown[deviceID].left || !keyDown[deviceID].right) {
-			entity->left  = keyDown[deviceID].left;
-			entity->right = keyDown[deviceID].right;
+			if (entity->keyFlip == FLIP_X || entity->keyFlip == FLIP_XY) {
+				entity->left  = keyDown[deviceID].right;
+				entity->right = keyDown[deviceID].left;
+			} else {
+				entity->left  = keyDown[deviceID].left;
+				entity->right = keyDown[deviceID].right;
+			}
 		}
 		else {
 			entity->left  = false;
@@ -400,13 +411,13 @@ void InitNativeObjectSystem()
         saveGame->vDPadX_Jump     = -56;
         saveGame->vDPadY_Jump     = 188;
         saveGame->voiceVolume     = MAX_VOLUME;
-        saveGame->tailsUnlocked   = Engine.gameType != GAME_SONIC1;
-        saveGame->knuxUnlocked    = Engine.gameType != GAME_SONIC1;
+        saveGame->tailsUnlocked   = Engine.gameType != GAME_SONIC1 || Engine.gameType != GAME_SONIC1FOREVER;
+        saveGame->knuxUnlocked    = Engine.gameType != GAME_SONIC1 || Engine.gameType != GAME_SONIC1FOREVER;
         saveGame->unlockedActs    = 0;
         WriteSaveRAMData();
     }
 #if !RETRO_USE_ORIGINAL_CODE
-    else if (Engine.gameType == GAME_SONIC2) {
+    else if (Engine.gameType == GAME_SONIC2 || Engine.gameType == GAME_SONIC2ABSOLUTE) {
         // ensure tails and knuckles are unlocked in sonic 2
         // they weren't automatically unlocked in older versions of the decomp
         saveGame->tailsUnlocked = true;

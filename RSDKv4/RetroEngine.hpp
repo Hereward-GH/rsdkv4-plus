@@ -291,6 +291,10 @@ enum RetroGameType {
     GAME_SONICCD = 4,
     GAME_SONICNEXUS = 5,
     GAME_SONICDUELOFFATES = 6,
+    GAME_SONICESSENCE = 7,
+    GAME_SONIC1FOREVER = 8,
+    GAME_SONIC2ABSOLUTE = 9,
+    GAME_SONICCDINFINITE = 10,
     // Feel free to insert your own games!
 };
 
@@ -353,6 +357,10 @@ extern bool engineDebugMode;
 
 // Native Entities
 #include "NativeObjects.hpp"
+
+#if RETRO_USE_STEAMWORKS
+#include "steam/steam_api.h"
+#endif
 
 class RetroEngine
 {
@@ -481,6 +489,7 @@ public:
 
 #if RETRO_SOFTWARE_RENDER
     ushort *frameBuffer   = nullptr;
+    ushort *flipBuffer    = nullptr;
     ushort *frameBuffer2x = nullptr;
 #endif
     uint *texBuffer = nullptr;
@@ -496,7 +505,6 @@ public:
     int refreshRate       = 60; // user-picked screen update rate
     int screenRefreshRate = 60; // hardware screen update rate
     int targetRefreshRate = 60; // game logic update rate
-    int brightness        = 1;  // how bright the screen is
 
     int renderFrameIndex = 0;
     int skipFrameIndex   = 0;
@@ -537,4 +545,6 @@ public:
 };
 
 extern RetroEngine Engine;
+
+void UpdateCursorVisibility(const SDL_Event* event);
 #endif // !RETROENGINE_H
