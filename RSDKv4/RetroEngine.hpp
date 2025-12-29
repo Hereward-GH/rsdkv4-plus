@@ -51,8 +51,10 @@ typedef unsigned int uint;
 #define RETRO_ANDROID  (5)
 #define RETRO_WP7      (6)
 // Custom Platforms start here
-#define RETRO_UWP   (7)
-#define RETRO_LINUX (8)
+#define RETRO_UWP      (7)
+#define RETRO_LINUX    (8)
+#define RETRO_SWITCH   (9)
+#define RETRO_PLATCNT (10)
 
 // Platform types (Game manages platform-specific code such as HUD position using this rather than the above)
 #define RETRO_STANDARD (0)
@@ -83,6 +85,9 @@ typedef unsigned int uint;
 #define RETRO_PLATFORM   (RETRO_OSX)
 #define RETRO_DEVICETYPE (RETRO_STANDARD)
 #endif
+#elif defined __SWITCH__
+#define RETRO_PLATFORM   (RETRO_SWITCH)
+#define RETRO_DEVICETYPE (RETRO_STANDARD)
 #elif defined __ANDROID__
 #define RETRO_PLATFORM   (RETRO_ANDROID)
 #define RETRO_DEVICETYPE (RETRO_MOBILE)
@@ -110,7 +115,7 @@ typedef unsigned int uint;
 #endif
 
 #if RETRO_PLATFORM == RETRO_WIN || RETRO_PLATFORM == RETRO_OSX || RETRO_PLATFORM == RETRO_LINUX || RETRO_PLATFORM == RETRO_UWP                       \
-    || RETRO_PLATFORM == RETRO_ANDROID
+    || RETRO_PLATFORM == RETRO_ANDROID || RETRO_PLATFORM == RETRO_SWITCH
 #ifdef RETRO_USE_SDL2
 #define RETRO_USING_SDL1 (0)
 #define RETRO_USING_SDL2 (1)
@@ -123,7 +128,7 @@ typedef unsigned int uint;
 #define RETRO_USING_SDL2 (0)
 #endif
 
-#if RETRO_PLATFORM == RETRO_iOS || RETRO_PLATFORM == RETRO_ANDROID || RETRO_PLATFORM == RETRO_WP7
+#if RETRO_PLATFORM == RETRO_iOS || RETRO_PLATFORM == RETRO_ANDROID || RETRO_PLATFORM == RETRO_WP7 || RETRO_PLATFORM == RETRO_SWITCH
 #define RETRO_GAMEPLATFORM (RETRO_MOBILE)
 #elif RETRO_PLATFORM == RETRO_UWP
 #define RETRO_GAMEPLATFORM (UAP_GetRetroGamePlatform())
@@ -204,20 +209,11 @@ typedef unsigned int uint;
 
 #define RETRO_USE_HAPTICS (1)
 
-// NOTE: This is only used for rev00 stuff, it was removed in rev01 and later builds
-#if RETRO_PLATFORM <= RETRO_WP7
+// use *this* macro to determine what platform the game thinks its running on
+#if RETRO_PLATFORM < RETRO_PLATCNT
 #define RETRO_GAMEPLATFORMID (RETRO_PLATFORM)
 #else
-
-// use *this* macro to determine what platform the game thinks its running on (since only the first 7 platforms are supported natively by scripts)
-#if RETRO_PLATFORM == RETRO_LINUX
-#define RETRO_GAMEPLATFORMID (RETRO_WIN)
-#elif RETRO_PLATFORM == RETRO_UWP
-#define RETRO_GAMEPLATFORMID (UAP_GetRetroGamePlatformId())
-#else
 #error Unspecified RETRO_GAMEPLATFORMID
-#endif
-
 #endif
 
 // Determines which revision to use (see defines below for specifics). Datafiles from REV00 and REV01 builds will not work on later revisions and vice versa.
@@ -295,6 +291,7 @@ enum RetroGameType {
     GAME_SONIC1FOREVER = 8,
     GAME_SONIC2ABSOLUTE = 9,
     GAME_SONICCDINFINITE = 10,
+    GAME_PROJECT_SAP = 11,
     // Feel free to insert your own games!
 };
 
@@ -367,6 +364,8 @@ class RetroEngine
 public:
     RetroEngine()
     {
+        gamePlatformID = RETRO_GAMEPLATFORMID;
+        
         if (RETRO_GAMEPLATFORM == RETRO_STANDARD) {
             gamePlatform   = "STANDARD";
             gameDeviceType = RETRO_STANDARD;
@@ -397,6 +396,7 @@ public:
 #if RETRO_REV00
     int message = 0;
 #endif
+    int gamePlatformID    = RETRO_WIN;
     int gameDeviceType    = RETRO_STANDARD;
     int globalBoxRegion   = REGION_JP;
     bool nativeMenuFadeIn = false;
@@ -460,7 +460,7 @@ public:
 #ifdef DECOMP_VERSION
     const char *gameVersion = DECOMP_VERSION;
 #else
-    const char *gameVersion  = "1.3.2";
+    const char *gameVersion  = "1.3.3";
 #endif
     const char *gamePlatform = nullptr;
 

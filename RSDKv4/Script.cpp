@@ -4,20 +4,16 @@
 #include <SDL.h>
 #include <ctime>
 
+// doing this so it's easier, for me at least :)
 #if RETRO_USE_COMPILER
-#if RETRO_ACCEPT_OLD_SYNTAX
-#if !RETRO_REV00
-#define COMMON_SCRIPT_VAR_COUNT (131)
-#else
-#define COMMON_SCRIPT_VAR_COUNT (130)
-#endif
-#else
-#if !RETRO_REV00
-#define COMMON_SCRIPT_VAR_COUNT (44)
-#else
-#define COMMON_SCRIPT_VAR_COUNT (43)
-#endif
-#endif
+    #if RETRO_ACCEPT_OLD_SYNTAX
+        #define OLD_SYNTAX_SCRIPT_VAR_COUNT (93)
+    #else
+        #define OLD_SYNTAX_SCRIPT_VAR_COUNT (0)
+    #endif
+    
+    // Aliases & Old Syntax Aliases
+    #define COMMON_SCRIPT_VAR_COUNT (56 + OLD_SYNTAX_SCRIPT_VAR_COUNT)
 #endif
 
 #include "Userdata.hpp"
@@ -115,6 +111,8 @@ const char variableNames[][0x20] = {
     "object.state",
     "object.rotation",
     "object.scale",
+    "object.yscale",
+    "object.scaleMode",
     "object.priority",
     "object.drawOrder",
     "object.direction",
@@ -384,9 +382,7 @@ const char variableNames[][0x20] = {
     "engine.sfxVolume",
     "engine.voiceVolume",
     "engine.bgmVolume",
-#if RETRO_REV00
     "engine.platformID",
-#endif
     "engine.trialMode",
 #if !RETRO_REV00
     "engine.deviceType",
@@ -429,6 +425,12 @@ const char variableNames[][0x20] = {
     "tempStr8",
     "tempStr9",
     "tempStr10",
+    "system.timeYear",
+    "system.timeMonth",
+    "system.timeDay",
+    "system.timeHour",
+    "system.timeMinute",
+    "system.timeSecond",
 };
 #endif
 
@@ -670,7 +672,6 @@ const FunctionInfo functions[] = {
     FunctionInfo("AutoDetectController", 0),
     FunctionInfo("SetControllerLEDColour", 3),
     FunctionInfo("CheckWindowFocus", 0),
-    FunctionInfo("GetSystemDateTime", 0),
     FunctionInfo("CheckAnyButtonPressed", 0),
     FunctionInfo("CheckControllerConnect", 0),
     FunctionInfo("CheckControllerDisconnect", 0),
@@ -720,22 +721,19 @@ ScriptVariableInfo scriptValueList[SCRIPT_VAR_COUNT] = {
     ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "MAT_TEMP", "2"),
     ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "FACING_LEFT", "1"),
     ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "FACING_RIGHT", "0"),
-    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_CHAOSCONTROL", "4"),
-    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_FROZEN", "3"),
-    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_PAUSED", "2"),
     ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_RUNNING", "1"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_PAUSED", "2"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_FROZEN", "3"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_2P_MODE", "4"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_SPLITSCREEN", "5"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_RUNNING_STEP", "6"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_PAUSED_STEP", "7"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_FROZEN_STEP", "8"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_2P_MODE_STEP", "9"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_SPLITSCREEN_STEP", "10"),
     ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "RESET_GAME", "2"),
     ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STANDARD", "0"),
     ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "MOBILE", "1"),
-    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "DEVICE_XBOX", "2"),
-    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "DEVICE_PSN", "3"),
-    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "DEVICE_IOS", "4"),
-    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "DEVICE_ANDROID", "5"),
-    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "DEVICE_NINTENDO", "6"),
-    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "DEVICE_STEAM", "7"),
-#if !RETRO_REV00
-    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "STAGE_2P_MODE", "4"),
-#endif
 	//missing aliases for old syntax
 #if RETRO_ACCEPT_OLD_SYNTAX
     ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "FLIP_NONE", "0"),
@@ -821,6 +819,16 @@ ScriptVariableInfo scriptValueList[SCRIPT_VAR_COUNT] = {
 	ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "TILELAYER_3DSKY", "4"),
 	ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "GROUP_ALL", "0"),
 #endif
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "RETRO_WIN", "0"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "RETRO_OSX", "1"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "RETRO_XBOX_360", "2"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "RETRO_PS3", "3"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "RETRO_iOS", "4"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "RETRO_ANDROID", "5"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "RETRO_WP7", "6"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "RETRO_UWP", "7"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "RETRO_LINUX", "8"),
+    ScriptVariableInfo(VAR_ALIAS, ACCESS_PUBLIC, "RETRO_SWITCH", "9")
 };
 // clang-format on
 
@@ -878,6 +886,8 @@ enum ScrVar {
     VAR_OBJECTSTATE,
     VAR_OBJECTROTATION,
     VAR_OBJECTSCALE,
+    VAR_OBJECTYSCALE,
+    VAR_OBJECTSCALEMODE,
     VAR_OBJECTPRIORITY,
     VAR_OBJECTDRAWORDER,
     VAR_OBJECTDIRECTION,
@@ -1127,9 +1137,7 @@ enum ScrVar {
     VAR_ENGINESFXVOLUME,
     VAR_ENGINEVOICEVOLUME,
     VAR_ENGINEBGMVOLUME,
-#if RETRO_REV00
     VAR_ENGINEPLATFORMID, // v3-style device type aka Windows/Mac/Android/etc
-#endif
     VAR_ENGINETRIALMODE,
 #if !RETRO_REV00
     VAR_ENGINEDEVICETYPE, // v4-style device type aka Standard/Mobile/Etc
@@ -1171,6 +1179,12 @@ enum ScrVar {
 	VAR_TEMPSTR8,
 	VAR_TEMPSTR9,
 	VAR_TEMPSTR10,
+    VAR_SYSTEM_TIMEYEAR,
+    VAR_SYSTEM_TIMEMONTH,
+    VAR_SYSTEM_TIMEDAY,
+    VAR_SYSTEM_TIMEHOUR,
+    VAR_SYSTEM_TIMEMINUTE,
+    VAR_SYSTEM_TIMESECOND,
     VAR_MAX_CNT
 };
 
@@ -1364,7 +1378,6 @@ enum ScrFunc {
     FUNC_AUTODETECTCONTROLLER,
     FUNC_SETCONTROLLERLEDCOLOUR,
     FUNC_CHECKWINDOWFOCUS,
-    FUNC_GETSYSTEMDATETIME,
     FUNC_CHECKANYBUTTONPRESSED,
     FUNC_CHECKCONTROLLERCONNECT,
     FUNC_CHECKCONTROLLERDISCONNECT,
@@ -1450,8 +1463,10 @@ void CheckAliasText(char *text)
 
 #if !RETRO_USE_ORIGINAL_CODE
         for (int v = 0; v < scriptValueListCount; ++v) {
-            if (StrComp(scriptValueList[v].name, variable->name))
-                PrintLog("WARNING: Variable Name '%s' has already been used!", variable->name);
+            if (StrComp(scriptValueList[v].name, variable->name)) {
+                PrintLog("WARNING: Variable Name '%s' has already been used! Ignoring...", variable->name);
+                return;
+            }
         }
 #endif
 
@@ -1563,8 +1578,10 @@ void CheckStaticText(char *text)
 
 #if !RETRO_USE_ORIGINAL_CODE
         for (int v = 0; v < scriptValueListCount; ++v) {
-            if (StrComp(scriptValueList[v].name, variable->name))
-                PrintLog("WARNING: Variable Name '%s' has already been used!", variable->name);
+            if (StrComp(scriptValueList[v].name, variable->name)) {
+                PrintLog("WARNING: Variable Name '%s' has already been used! Ignoring...", variable->name);
+                return;
+            }
         }
 #endif
 
@@ -4012,6 +4029,14 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                         scriptEng.operands[i] = objectEntityList[arrayVal].scale;
                         break;
                     }
+                    case VAR_OBJECTYSCALE: {
+                        scriptEng.operands[i] = objectEntityList[arrayVal].yscale;
+                        break;
+                    }
+                    case VAR_OBJECTSCALEMODE: {
+                        scriptEng.operands[i] = objectEntityList[arrayVal].scaleMode;
+                        break;
+                    }
                     case VAR_OBJECTPRIORITY: {
                         scriptEng.operands[i] = objectEntityList[arrayVal].priority;
                         break;
@@ -4207,7 +4232,6 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                         break;
                     }
                     case VAR_OBJECTOUTOFBOUNDS: {
-#if !RETRO_REV00
                         int boundX1_2P = -(0x200 << 16);
                         int boundX2_2P = (0x200 << 16);
                         int boundX3_2P = -(0x180 << 16);
@@ -4280,17 +4304,6 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                                 scriptEng.operands[i] = x <= boundL || x >= boundR || y <= boundT || y >= boundB;
                             }
                         }
-#else
-                        int x = objectEntityList[arrayVal].xpos >> 16;
-                        int y = objectEntityList[arrayVal].ypos >> 16;
-
-                        int boundL = xScrollOffset - OBJECT_BORDER_X1;
-                        int boundR = xScrollOffset + OBJECT_BORDER_X2;
-                        int boundT = yScrollOffset - OBJECT_BORDER_Y1;
-                        int boundB = yScrollOffset + OBJECT_BORDER_Y2;
-
-                        scriptEng.operands[i] = x <= boundL || x >= boundR || y <= boundT || y >= boundB;
-#endif
                         break;
                     }
                     case VAR_OBJECTSPRITESHEET: {
@@ -4647,12 +4660,10 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                     case VAR_ENGINESFXVOLUME: scriptEng.operands[i] = sfxVolume; break;
                     case VAR_ENGINEVOICEVOLUME: scriptEng.operands[i] = voiceVolume; break;
                     case VAR_ENGINEBGMVOLUME: scriptEng.operands[i] = bgmVolume; break;
-#if RETRO_REV00
-                    case VAR_ENGINEPLATFORMID: scriptEng.operands[i] = RETRO_GAMEPLATFORMID; break;
-#endif
+                    case VAR_ENGINEPLATFORMID: scriptEng.operands[i] = Engine.gamePlatformID; break;
                     case VAR_ENGINETRIALMODE: scriptEng.operands[i] = Engine.trialMode; break;
 #if !RETRO_REV00
-                    case VAR_ENGINEDEVICETYPE: scriptEng.operands[i] = RETRO_DEVICETYPE; break;
+                    case VAR_ENGINEDEVICETYPE: scriptEng.operands[i] = Engine.gameDeviceType; break;
 #endif
 
                     // Origins Extras
@@ -4736,6 +4747,42 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                     case VAR_TEMPSTR8:  StrCopy(scriptText, scriptEng.tempStr[8]);  StrCopy(scriptEng.operandStr[i], scriptEng.tempStr[8]);  break;
                     case VAR_TEMPSTR9:  StrCopy(scriptText, scriptEng.tempStr[9]);  StrCopy(scriptEng.operandStr[i], scriptEng.tempStr[9]);  break;
                     case VAR_TEMPSTR10: StrCopy(scriptText, scriptEng.tempStr[10]); StrCopy(scriptEng.operandStr[i], scriptEng.tempStr[10]); break;
+                    case VAR_SYSTEM_TIMEYEAR: {
+                        time_t now = time(NULL);
+                        struct tm *tm_now = localtime(&now);
+                        scriptEng.operands[i] = tm_now->tm_year + 1900;
+                        break;
+                    }
+                    case VAR_SYSTEM_TIMEMONTH: {
+                        time_t now = time(NULL);
+                        struct tm *tm_now = localtime(&now);
+                        scriptEng.operands[i] = tm_now->tm_mon + 1;
+                        break;
+                    }
+                    case VAR_SYSTEM_TIMEDAY: {
+                        time_t now = time(NULL);
+                        struct tm *tm_now = localtime(&now);
+                        scriptEng.operands[i] = tm_now->tm_mday;
+                        break;
+                    }
+                    case VAR_SYSTEM_TIMEHOUR: {
+                        time_t now = time(NULL);
+                        struct tm *tm_now = localtime(&now);
+                        scriptEng.operands[i] = tm_now->tm_hour;
+                        break;
+                    }
+                    case VAR_SYSTEM_TIMEMINUTE: {
+                        time_t now = time(NULL);
+                        struct tm *tm_now = localtime(&now);
+                        scriptEng.operands[i] = tm_now->tm_min;
+                        break;
+                    }
+                    case VAR_SYSTEM_TIMESECOND: {
+                        time_t now = time(NULL);
+                        struct tm *tm_now = localtime(&now);
+                        scriptEng.operands[i] = tm_now->tm_sec;
+                        break;
+                    }
                 }
             }
             else if (opcodeType == SCRIPTVAR_INTCONST) { // int constant
@@ -4765,6 +4812,12 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
         ObjectScript *scriptInfo = &objectScriptList[objectEntityList[objectEntityPos].type];
         Entity *entity           = &objectEntityList[objectEntityPos];
         SpriteFrame *spriteFrame = nullptr;
+
+        // sort out scale modes here since funcs hate me
+        int entityScaleX = entity->scale;
+        int entityScaleY = entity->scale;
+        if (entity->scaleMode == 1)
+            entityScaleY = entity->yscale;
 
         // String Variable Functions
         switch (opcode) {
@@ -5506,11 +5559,12 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
             case FUNC_DRAWSPRITEFX:
                 opcodeSize  = 0;
                 spriteFrame = &scriptFrames[scriptInfo->frameListOffset + scriptEng.operands[0]];
+                
                 switch (scriptEng.operands[1]) {
                     case FX_SCALE:
                         DrawSpriteScaled(entity->direction, (scriptEng.operands[2] >> 16) - xScrollOffset,
-                                         (scriptEng.operands[3] >> 16) - yScrollOffset, -spriteFrame->pivotX, -spriteFrame->pivotY, entity->scale,
-                                         entity->scale, spriteFrame->width, spriteFrame->height, spriteFrame->sprX, spriteFrame->sprY,
+                                         (scriptEng.operands[3] >> 16) - yScrollOffset, -spriteFrame->pivotX, -spriteFrame->pivotY, entityScaleX,
+                                         entityScaleY, spriteFrame->width, spriteFrame->height, spriteFrame->sprX, spriteFrame->sprY,
                                          scriptInfo->spriteSheetID);
                         break;
                     case FX_ROTATE:
@@ -5523,7 +5577,7 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                         DrawSpriteRotozoom(entity->direction, (scriptEng.operands[2] >> 16) - xScrollOffset,
                                            (scriptEng.operands[3] >> 16) - yScrollOffset, -spriteFrame->pivotX, -spriteFrame->pivotY,
                                            spriteFrame->sprX, spriteFrame->sprY, spriteFrame->width, spriteFrame->height, entity->rotation,
-                                           entity->scale, scriptInfo->spriteSheetID);
+                                           entityScaleX, entityScaleY, scriptInfo->spriteSheetID);
                         break;
                     case FX_INK:
                         switch (entity->inkEffect) {
@@ -5561,13 +5615,13 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                         if (entity->inkEffect == INK_ALPHA) {
                             DrawScaledTintMask(entity->direction, (scriptEng.operands[2] >> 16) - xScrollOffset,
                                                (scriptEng.operands[3] >> 16) - yScrollOffset, -spriteFrame->pivotX, -spriteFrame->pivotY,
-                                               entity->scale, entity->scale, spriteFrame->width, spriteFrame->height, spriteFrame->sprX,
+                                               entityScaleX, entityScaleY, spriteFrame->width, spriteFrame->height, spriteFrame->sprX,
                                                spriteFrame->sprY, scriptInfo->spriteSheetID);
                         }
                         else {
                             DrawSpriteScaled(entity->direction, (scriptEng.operands[2] >> 16) - xScrollOffset,
-                                             (scriptEng.operands[3] >> 16) - yScrollOffset, -spriteFrame->pivotX, -spriteFrame->pivotY, entity->scale,
-                                             entity->scale, spriteFrame->width, spriteFrame->height, spriteFrame->sprX, spriteFrame->sprY,
+                                             (scriptEng.operands[3] >> 16) - yScrollOffset, -spriteFrame->pivotX, -spriteFrame->pivotY, entityScaleX,
+                                             entityScaleY, spriteFrame->width, spriteFrame->height, spriteFrame->sprX, spriteFrame->sprY,
                                              scriptInfo->spriteSheetID);
                         }
                         break;
@@ -5603,17 +5657,18 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                             DrawSpriteAllFX(entity->direction, (scriptEng.operands[2] >> 16) - xScrollOffset,
                                            (scriptEng.operands[3] >> 16) - yScrollOffset, -spriteFrame->pivotX, -spriteFrame->pivotY,
                                            spriteFrame->sprX, spriteFrame->sprY, spriteFrame->width, spriteFrame->height, entity->rotation,
-                                           entity->scale, scriptInfo->spriteSheetID, entity->alpha, entity->inkEffect, scriptEng.operands[1]);
+                                           entityScaleX, entityScaleY, scriptInfo->spriteSheetID, entity->alpha, entity->inkEffect, scriptEng.operands[1]);
                         break;
                 }
                 break;
             case FUNC_DRAWSPRITESCREENFX:
                 opcodeSize  = 0;
                 spriteFrame = &scriptFrames[scriptInfo->frameListOffset + scriptEng.operands[0]];
+                
                 switch (scriptEng.operands[1]) {
                     case FX_SCALE:
                         DrawSpriteScaled(entity->direction, scriptEng.operands[2], scriptEng.operands[3], -spriteFrame->pivotX, -spriteFrame->pivotY,
-                                         entity->scale, entity->scale, spriteFrame->width, spriteFrame->height, spriteFrame->sprX, spriteFrame->sprY,
+                                         entityScaleX, entityScaleY, spriteFrame->width, spriteFrame->height, spriteFrame->sprX, spriteFrame->sprY,
                                          scriptInfo->spriteSheetID);
                         break;
                     case FX_ROTATE:
@@ -5624,7 +5679,7 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                     case FX_ROTOZOOM:
                         DrawSpriteRotozoom(entity->direction, scriptEng.operands[2], scriptEng.operands[3], -spriteFrame->pivotX,
                                            -spriteFrame->pivotY, spriteFrame->sprX, spriteFrame->sprY, spriteFrame->width, spriteFrame->height,
-                                           entity->rotation, entity->scale, scriptInfo->spriteSheetID);
+                                           entity->rotation, entityScaleX, entityScaleY, scriptInfo->spriteSheetID);
                         break;
                     case FX_INK:
                         switch (entity->inkEffect) {
@@ -5657,12 +5712,12 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                     case FX_TINT:
                         if (entity->inkEffect == INK_ALPHA) {
                             DrawScaledTintMask(entity->direction, scriptEng.operands[2], scriptEng.operands[3], -spriteFrame->pivotX,
-                                               -spriteFrame->pivotY, entity->scale, entity->scale, spriteFrame->width, spriteFrame->height,
+                                               -spriteFrame->pivotY, entityScaleX, entityScaleY, spriteFrame->width, spriteFrame->height,
                                                spriteFrame->sprX, spriteFrame->sprY, scriptInfo->spriteSheetID);
                         }
                         else {
                             DrawSpriteScaled(entity->direction, scriptEng.operands[2], scriptEng.operands[3], -spriteFrame->pivotX,
-                                             -spriteFrame->pivotY, entity->scale, entity->scale, spriteFrame->width, spriteFrame->height,
+                                             -spriteFrame->pivotY, entityScaleX, entityScaleY, spriteFrame->width, spriteFrame->height,
                                              spriteFrame->sprX, spriteFrame->sprY, scriptInfo->spriteSheetID);
                         }
                         break;
@@ -5695,7 +5750,8 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
 					default: //use for stacked flags that don't use all
                         DrawSpriteAllFX(entity->direction, scriptEng.operands[2], scriptEng.operands[3], -spriteFrame->pivotX,
                                         -spriteFrame->pivotY, spriteFrame->sprX, spriteFrame->sprY, spriteFrame->width, spriteFrame->height,
-                                        entity->rotation, entity->scale, scriptInfo->spriteSheetID, entity->alpha, entity->inkEffect, scriptEng.operands[1]);
+                                        entity->rotation, entityScaleX, entityScaleY, scriptInfo->spriteSheetID, entity->alpha,
+                                        entity->inkEffect, scriptEng.operands[1]);
                     break;
                 }
                 break;
@@ -6182,7 +6238,7 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
 #else
                 LoadTextFile(menu, scriptText, false);
 #endif
-                PrintLog("Using MENU_%d to load '%s'", scriptEng.operands[0], scriptText);
+                PrintLog("Using MENU_%d to load 'Data/Strings/%s'", scriptEng.operands[0] + 1, scriptText);
                 break;
             }
             case FUNC_GETTEXTINFO: {
@@ -6647,30 +6703,6 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                 break;
             }
 
-            case FUNC_GETSYSTEMDATETIME: {
-                opcodeSize = 0;
-                time_t now = time(NULL);
-                struct tm *tm_now = localtime(&now);
-
-                scriptEng.temp[0] = tm_now->tm_year + 1900; // Year
-                scriptEng.temp[1] = tm_now->tm_mon + 1;     // Month (1-12)
-                scriptEng.temp[2] = tm_now->tm_mday;        // Day (1-31)
-                scriptEng.temp[3] = tm_now->tm_hour;        // Hour (0-23)
-                scriptEng.temp[4] = tm_now->tm_min;         // Minute (0-59)
-                scriptEng.temp[5] = tm_now->tm_sec;         // Second (0-59)
-
-                PrintLog(
-                    "System DateTime: %04d-%02d-%02d %02d:%02d:%02d",
-                    scriptEng.temp[0],
-                    scriptEng.temp[1],
-                    scriptEng.temp[2],
-                    scriptEng.temp[3],
-                    scriptEng.temp[4],
-                    scriptEng.temp[5]
-                );
-                break;
-            }
-
             case FUNC_CHECKANYBUTTONPRESSED: {
                 opcodeSize = 0;
                 CheckAnyButtonPressed();
@@ -6903,6 +6935,14 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                     }
                     case VAR_OBJECTSCALE: {
                         objectEntityList[arrayVal].scale = scriptEng.operands[i];
+                        break;
+                    }
+                    case VAR_OBJECTYSCALE: {
+                        objectEntityList[arrayVal].yscale = scriptEng.operands[i];
+                        break;
+                    }
+                    case VAR_OBJECTSCALEMODE: {
+                        objectEntityList[arrayVal].scaleMode = scriptEng.operands[i];
                         break;
                     }
                     case VAR_OBJECTPRIORITY: {
@@ -7345,7 +7385,7 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                     case VAR_TOUCHSCREENYPOS: break;
                     case VAR_MUSICVOLUME: SetMusicVolume(scriptEng.operands[i]); break;
                     case VAR_MUSICCURRENTTRACK: break;
-                    case VAR_MUSICPOSITION: break;
+                    case VAR_MUSICPOSITION: musicPosition = scriptEng.operands[i]; break;
                     case VAR_KEYDOWNUP: keyDown[inputCheck].up = scriptEng.operands[i]; break;
                     case VAR_KEYDOWNDOWN: keyDown[inputCheck].down = scriptEng.operands[i]; break;
                     case VAR_KEYDOWNLEFT: keyDown[inputCheck].left = scriptEng.operands[i]; break;
@@ -7470,9 +7510,7 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                         bgmVolume = scriptEng.operands[i];
                         SetGameVolumes(bgmVolume, sfxVolume, voiceVolume);
                         break;
-#if RETRO_REV00
                     case VAR_ENGINEPLATFORMID: break;
-#endif
                     case VAR_ENGINETRIALMODE: Engine.trialMode = scriptEng.operands[i]; break;
 #if !RETRO_REV00
                     case VAR_ENGINEDEVICETYPE: break;
@@ -7543,6 +7581,12 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                     case VAR_TEMPSTR8:  StrCopy(scriptEng.tempStr[8],  scriptEng.operandStr[i]); break;
                     case VAR_TEMPSTR9:  StrCopy(scriptEng.tempStr[9],  scriptEng.operandStr[i]); break;
                     case VAR_TEMPSTR10: StrCopy(scriptEng.tempStr[10], scriptEng.operandStr[i]); break;
+                    case VAR_SYSTEM_TIMEYEAR: break;
+                    case VAR_SYSTEM_TIMEMONTH: break;
+                    case VAR_SYSTEM_TIMEDAY: break;
+                    case VAR_SYSTEM_TIMEHOUR: break;
+                    case VAR_SYSTEM_TIMEMINUTE: break;
+                    case VAR_SYSTEM_TIMESECOND: break;
                 }
             }
             else if (opcodeType == SCRIPTVAR_INTCONST) { // int constant

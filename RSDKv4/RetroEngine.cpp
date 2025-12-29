@@ -513,6 +513,10 @@ void RetroEngine::Init()
         gameType = GAME_SONICCDINFINITE;
     }
 
+    if (strstr(gameWindowText, "Project SAP")) {
+        gameType = GAME_PROJECT_SAP;
+    }
+
     // Feel free to insert your own games!
 
 #if !RETRO_USE_ORIGINAL_CODE
@@ -870,9 +874,13 @@ void RetroEngine::LoadXMLVariables()
                             if (valAttr)
                                 varValue = GetXMLAttributeValueInt(valAttr);
 
-                            StrCopy(globalVariableNames[globalVariablesCount], varName);
-                            globalVariables[globalVariablesCount] = varValue;
-                            globalVariablesCount++;
+                            if (globalVariablesCount >= GLOBALVAR_COUNT)
+                                PrintLog("Failed to add global variable '%s' (max limit reached)", varName);
+                            else if (GetGlobalVariableID(varName) == 0xFF) {
+                                StrCopy(globalVariableNames[globalVariablesCount], varName);
+                                globalVariables[globalVariablesCount] = varValue;
+                                globalVariablesCount++;
+                            }
 
                         } while ((varElement = NextXMLSiblingElement(doc, varElement, "variable")));
                     }
@@ -1405,7 +1413,7 @@ bool RetroEngine::LoadGameConfig(const char *filePath)
 #endif
     }
 
-#if RETRO_REV03 && RETRO_USE_STEAMWORKS
+#if RETRO_USE_STEAMWORKS
     if (SteamAPI_Init()) {
         bool installed = SteamApps()->BIsDlcInstalled(2343200); // is Origins Plus here?
         SetGlobalVariableByName("game.hasPlusDLC", installed);
@@ -1413,7 +1421,7 @@ bool RetroEngine::LoadGameConfig(const char *filePath)
     else {
         SetGlobalVariableByName("game.hasPlusDLC", false);
     }
-#elif RSDK_AUTOBUILD
+#else
     SetGlobalVariableByName("game.hasPlusDLC", !RSDK_AUTOBUILD);
 #endif
 

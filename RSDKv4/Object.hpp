@@ -4,7 +4,7 @@
 #define NATIVEENTITY_COUNT (0x100)
 
 #if RETRO_VANILLA_LIKE
-#define ENTITY_COUNT     (0x400)
+#define ENTITY_COUNT     (0x4A0)
 #else
 #define ENTITY_COUNT     (0x1000)
 #endif
@@ -32,6 +32,8 @@ struct Entity {
     int state;
     int angle;
     int scale;
+    int yscale;
+    int scaleMode;
     int rotation;
     int alpha;
     int animationTimer;
@@ -64,6 +66,7 @@ struct Entity {
     byte jumpPress;
     byte jumpHold;
     byte keyFlip;
+    byte loadObjects;
     byte scrollTracking;
     // was 3 on S1 release, but bumped up to 5 for S2
     byte floorSensors[RETRO_REV00 ? 3 : 5];
@@ -149,9 +152,8 @@ void ProcessStartupObjects();
 void ProcessObjects();
 void ProcessPausedObjects();
 void ProcessFrozenObjects();
-#if !RETRO_REV00
 void Process2PObjects();
-#endif
+void ProcessSplitscreenObjects();
 
 void SetObjectTypeName(const char *objectName, int objectID);
 

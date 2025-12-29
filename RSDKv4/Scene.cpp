@@ -164,7 +164,8 @@ void ProcessStage(void)
             stageMinutes                 = 0;
             stageMode                    = STAGEMODE_NORMAL;
 
-#if !RSDK_AUTOBUILD && RETRO_USE_STEAMWORKS // Now it works with various games. TODO: update this if it needs to, but it should be fine?
+#if RSDK_AUTOBUILD // Now it works with various games. TODO: update this if it needs to, but it should be fine?
+#if RETRO_USE_STEAMWORKS
             if (SteamAPI_Init()) {
                 bool installed = SteamApps()->BIsDlcInstalled(2343200); // is Origins Plus here?
                 SetGlobalVariableByName("game.hasPlusDLC", installed);
@@ -173,23 +174,22 @@ void ProcessStage(void)
                 SetGlobalVariableByName("game.hasPlusDLC", false);
             }
 
-            switch (Engine.gameType) {
-                case GAME_SONIC1:
-                case GAME_SONIC2:
-                case GAME_SONIC3:
-                // Forever and Absolute has its own Amy, so....
-                    if (GetGlobalVariableByName("game.hasPlusDLC") == false) { // prevent players from using Amy without DLC.
+            if (GetGlobalVariableByName("game.hasPlusDLC") == false) {
+#endif
+                switch (Engine.gameType) {
+                    // Forever and Absolute has their own Amy, so....
+                    case GAME_SONIC1:
+                    case GAME_SONIC2:
+                    case GAME_SONIC3: // prevent players from using Amy without DLC.
                         if (GetGlobalVariableByName("PLAYER_AMY") && playerListPos == GetGlobalVariableByName("PLAYER_AMY"))
                             playerListPos = 0;
                         else if (GetGlobalVariableByName("PLAYER_AMY_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_AMY_TAILS"))
                             playerListPos = 0;
                         else if (GetGlobalVariableByName("PLAYER_AMY") && (GetGlobalVariableByName("stage.player2Enabled")))
                             playerListPos = 0;
-                    }
-                break;
+                        break;
 
-                case GAME_SONICCD:
-                    if (GetGlobalVariableByName("game.hasPlusDLC") == false) { // prevent players from using Knuckles or Amy without DLC, like OG Sonic CD would.
+                    case GAME_SONICCD: // prevent players from using Knuckles or Amy without DLC, like OG Sonic CD would.
                         if (GetGlobalVariableByName("PLAYER_KNUCKLES") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES"))
                             playerListPos = 0;
                         else if (GetGlobalVariableByName("PLAYER_KNUCKLES_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES_TAILS"))
@@ -198,60 +198,27 @@ void ProcessStage(void)
                             playerListPos = 0;
                         else if (GetGlobalVariableByName("PLAYER_AMY_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_AMY_TAILS"))
                             playerListPos = 0;
-                        else if (GetGlobalVariableByName("PLAYER_KNUCKLES") && (GetGlobalVariableByName("stage.player2Enabled")))
+                        else if (GetGlobalVariableByName("PLAYER_KNUCKLES") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES")
+                                 && GetGlobalVariableByName("stage.player2Enabled"))
                             playerListPos = 0;
-                        else if (GetGlobalVariableByName("PLAYER_AMY") && (GetGlobalVariableByName("stage.player2Enabled")))
+                        else if (GetGlobalVariableByName("PLAYER_AMY") && playerListPos == GetGlobalVariableByName("PLAYER_AMY")
+                                 && GetGlobalVariableByName("stage.player2Enabled"))
                             playerListPos = 0;
-                    }
-
-                case GAME_SONICCDINFINITE:
-                    if (GetGlobalVariableByName("game.hasPlusDLC") == false) { // prevent players from using Knuckles or Amy without DLC, like OG Sonic CD would.
+                        break;
+                        
+                    case GAME_SONICCDINFINITE: // prevent players from using Knuckles without DLC
                         if (GetGlobalVariableByName("PLAYER_KNUCKLES") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES"))
                             playerListPos = 0;
                         else if (GetGlobalVariableByName("PLAYER_KNUCKLES_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES_TAILS"))
                             playerListPos = 0;
-                        else if (GetGlobalVariableByName("PLAYER_KNUCKLES") && (GetGlobalVariableByName("stage.player2Enabled")))
+                        else if (GetGlobalVariableByName("PLAYER_KNUCKLES") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES")
+                                 && GetGlobalVariableByName("stage.player2Enabled"))
                             playerListPos = 0;
-                    }
-                break;
+                        break;
+                }
+#if RETRO_USE_STEAMWORKS
             }
-#elif RSDK_AUTOBUILD
-            switch (Engine.gameType) {
-                case GAME_SONIC1:
-                case GAME_SONIC2:
-                case GAME_SONIC3: // prevent players from using Amy without DLC.
-                    if (GetGlobalVariableByName("PLAYER_AMY") && playerListPos == GetGlobalVariableByName("PLAYER_AMY"))
-                        playerListPos = 0;
-                    else if (GetGlobalVariableByName("PLAYER_AMY_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_AMY_TAILS"))
-                        playerListPos = 0;
-                    else if (GetGlobalVariableByName("PLAYER_AMY") && (GetGlobalVariableByName("stage.player2Enabled")))
-                        playerListPos = 0;
-                    break;
-
-                case GAME_SONICCD: // prevent players from using Knuckles or Amy without DLC, like OG Sonic CD would.
-                    if (GetGlobalVariableByName("PLAYER_KNUCKLES") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES"))
-                        playerListPos = 0;
-                    else if (GetGlobalVariableByName("PLAYER_KNUCKLES_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES_TAILS"))
-                        playerListPos = 0;
-                    else if (GetGlobalVariableByName("PLAYER_AMY") && playerListPos == GetGlobalVariableByName("PLAYER_AMY"))
-                        playerListPos = 0;
-                    else if (GetGlobalVariableByName("PLAYER_AMY_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_AMY_TAILS"))
-                        playerListPos = 0;
-                    else if (GetGlobalVariableByName("PLAYER_KNUCKLES") && (GetGlobalVariableByName("stage.player2Enabled")))
-                        playerListPos = 0;
-                    else if (GetGlobalVariableByName("PLAYER_AMY") && (GetGlobalVariableByName("stage.player2Enabled")))
-                        playerListPos = 0;
-                    break;
-
-                case GAME_SONICCDINFINITE: // prevent players from using Knuckles without DLC
-                    if (GetGlobalVariableByName("PLAYER_KNUCKLES") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES"))
-                        playerListPos = 0;
-                    else if (GetGlobalVariableByName("PLAYER_KNUCKLES_TAILS") && playerListPos == GetGlobalVariableByName("PLAYER_KNUCKLES_TAILS"))
-                        playerListPos = 0;
-                    else if (GetGlobalVariableByName("PLAYER_KNUCKLES") && (GetGlobalVariableByName("stage.player2Enabled")))
-                        playerListPos = 0;
-                    break;
-            }
+#endif
 #endif
 
 
@@ -425,7 +392,6 @@ void ProcessStage(void)
             DrawStageGFX();
             break;
 
-#if !RETRO_REV00
         case STAGEMODE_2P:
             drawStageGFXHQ = false;
             if (fadeMode > 0)
@@ -472,7 +438,53 @@ void ProcessStage(void)
             ProcessParallaxAutoScroll();
             DrawStageGFX();
             break;
-#endif
+
+        case STAGEMODE_SPLITSCREEN:
+            drawStageGFXHQ = false;
+            if (fadeMode > 0)
+                fadeMode = 0;
+
+            lastXSize = -1;
+            lastYSize = -1;
+            CheckKeyDown(keyDown);
+            CheckKeyPress(keyPress);
+
+            if (timeEnabled) {
+                if (++frameCounter == 60) {
+                    frameCounter = 0;
+                    if (++stageSeconds > 59) {
+                        stageSeconds = 0;
+                        ++stageMinutes;
+                    }
+                }
+                stageMilliseconds = 100 * frameCounter / 60;
+            }
+            else {
+                frameCounter = 60 * stageMilliseconds / 100;
+            }
+
+            // Update
+            ProcessSplitscreenObjects();
+
+            if (cameraTarget > -1) {
+                if (cameraEnabled == 1) {
+                    switch (cameraStyle) {
+                        case CAMERASTYLE_FOLLOW: SetPlayerScreenPosition(&objectEntityList[cameraTarget]); break;
+                        case CAMERASTYLE_EXTENDED:
+                        case CAMERASTYLE_EXTENDED_OFFSET_L:
+                        case CAMERASTYLE_EXTENDED_OFFSET_R: SetPlayerScreenPositionCDStyle(&objectEntityList[cameraTarget]); break;
+                        case CAMERASTYLE_HLOCKED: SetPlayerHLockedScreenPosition(&objectEntityList[cameraTarget]); break;
+                        default: break;
+                    }
+                }
+                else {
+                    SetPlayerLockedScreenPosition(&objectEntityList[cameraTarget]);
+                }
+            }
+
+            ProcessParallaxAutoScroll();
+            DrawStageGFX();
+            break;
 
         case STAGEMODE_NORMAL_STEP:
             drawStageGFXHQ = false;
@@ -616,7 +628,6 @@ void ProcessStage(void)
             }
             break;
 
-#if !RETRO_REV00
         case STAGEMODE_2P_STEP:
             drawStageGFXHQ = false;
             if (fadeMode > 0)
@@ -671,7 +682,61 @@ void ProcessStage(void)
                 ResumeSound();
             }
             break;
-#endif
+
+        case STAGEMODE_SPLITSCREEN_STEP:
+            drawStageGFXHQ = false;
+            if (fadeMode > 0)
+                fadeMode = 0;
+
+            lastXSize = -1;
+            lastYSize = -1;
+            CheckKeyDown(keyDown);
+            CheckKeyPress(keyPress);
+            if (keyPress[0].C) {
+                keyPress[0].C = false;
+
+                if (timeEnabled) {
+                    if (++frameCounter == 60) {
+                        frameCounter = 0;
+                        if (++stageSeconds > 59) {
+                            stageSeconds = 0;
+                            ++stageMinutes;
+                        }
+                    }
+                    stageMilliseconds = 100 * frameCounter / 60;
+                }
+                else {
+                    frameCounter = 60 * stageMilliseconds / 100;
+                }
+
+                // Update
+                ProcessSplitscreenObjects();
+
+                if (cameraTarget > -1) {
+                    if (cameraEnabled == 1) {
+                        switch (cameraStyle) {
+                            case CAMERASTYLE_FOLLOW: SetPlayerScreenPosition(&objectEntityList[cameraTarget]); break;
+                            case CAMERASTYLE_EXTENDED:
+                            case CAMERASTYLE_EXTENDED_OFFSET_L:
+                            case CAMERASTYLE_EXTENDED_OFFSET_R: SetPlayerScreenPositionCDStyle(&objectEntityList[cameraTarget]); break;
+                            case CAMERASTYLE_HLOCKED: SetPlayerHLockedScreenPosition(&objectEntityList[cameraTarget]); break;
+                            default: break;
+                        }
+                    }
+                    else {
+                        SetPlayerLockedScreenPosition(&objectEntityList[cameraTarget]);
+                    }
+                }
+
+                DrawStageGFX();
+                ProcessParallaxAutoScroll();
+            }
+
+            if (pauseEnabled && keyPress[0].start) {
+                stageMode = STAGEMODE_SPLITSCREEN;
+                ResumeSound();
+            }
+            break;
     }
 }
 
@@ -691,7 +756,9 @@ void LoadStageFiles(void)
     char strBuffer[0x100];
 
     StopAllSfx();
-    if (!CheckCurrentStageFolder(stageListPosition)) {
+    //if (!CheckCurrentStageFolder(stageListPosition)) {
+	//Nope. When I say LoadStage() you Load the fuckin Stage() ya piece o' shit.
+	if (true) {
         PrintLog("Loading Scene %s - %s", stageListNames[activeStageList], stageList[activeStageList][stageListPosition].name);
         ReleaseStageSfx();
         ClearScriptData();
@@ -734,9 +801,9 @@ void LoadStageFiles(void)
 				}
 
 #if RETRO_USE_MOD_LOADER && RETRO_USE_COMPILER
-            for (byte i = 0; i < modObjCount && loadGlobalScripts; ++i) {
-                SetObjectTypeName(modTypeNames[i], globalObjectCount + i + 1);
-            }
+                for (byte i = 0; i < modObjCount && loadGlobalScripts; ++i) {
+                    SetObjectTypeName(modTypeNames[i], globalObjectCount + i + 1);
+                }
 #endif
 
 #if RETRO_USE_COMPILER
@@ -782,7 +849,7 @@ void LoadStageFiles(void)
                 SetFileInfo(&infoStore);
 #endif
             }
-                CloseFile();
+            CloseFile();
 
 #if RETRO_USE_MOD_LOADER
             Engine.LoadXMLPalettes();
@@ -793,10 +860,12 @@ void LoadStageFiles(void)
             for (byte i = 0; i < modObjCount && loadGlobalScripts; ++i) {
                 SetObjectTypeName(modTypeNames[i], scriptID);
 
-                GetFileInfo(&infoStore);
+                //SetFileInfo here was causing a crash when XML mods were mixed with non XML mods
+                //so GET IT THE FUCK OUTTA HERE
+                //GetFileInfo(&infoStore);
                 CloseFile();
                 ParseScriptFile(modScriptPaths[i], scriptID++);
-                SetFileInfo(&infoStore);
+                //SetFileInfo(&infoStore);
                 if (Engine.gameMode == ENGINE_SCRIPTERROR)
                     return;
             }
@@ -1901,176 +1970,78 @@ void SetPlayerScreenPositionCDStyle(Entity *target)
     }
     cameraXPos = targetX - target->lookPosX;
 
-    if (!target->scrollTracking) {
-        if (cameraLockedY) {
-            cameraYPos = targetY;
-            if (cameraYPos < curYBoundary1 + SCREEN_SCROLL_UP) {
-                cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
+    int yPosDif = 0;
+    if (target->scrollTracking) {
+        if (targetY <= cameraYPos) {
+            yPosDif = (targetY - cameraYPos) + 32;
+            if (yPosDif <= 0) {
+                if (yPosDif <= -17)
+                    yPosDif = -16;
             }
+            else
+                yPosDif = 0;
         }
-        else if (targetY > cameraYPos) {
-            int dif = targetY - cameraYPos;
-            if (targetY - cameraYPos < 0) {
-                cameraLockedY = true;
-                if (cameraYPos < curYBoundary1 + SCREEN_SCROLL_UP) {
-                    cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
+        else {
+            yPosDif = (targetY - cameraYPos) - 32;
+            if (yPosDif >= 0) {
+                if (yPosDif >= 17)
+                    yPosDif = 16;
+            }
+            else
+                yPosDif = 0;
+        }
+        cameraLockedY = false;
+    }
+    else if (cameraLockedY) {
+        yPosDif    = 0;
+        cameraYPos = targetY;
+    }
+    else if (targetY <= cameraYPos) {
+        yPosDif = targetY - cameraYPos;
+        if (targetY - cameraYPos <= 0) {
+            if (yPosDif >= -32 && abs(target->yvel) <= 0x60000) {
+                if (yPosDif < -6) {
+                    yPosDif = -6;
                 }
             }
-            else {
-                if (dif > 32 || abs(target->yvel) > 0x60000) {
-                    if (dif > 16) {
-                        dif = 16;
-                        if (cameraYPos + dif >= curYBoundary1 + SCREEN_SCROLL_UP) {
-                            cameraYPos += dif;
-                        }
-                        else {
-                            cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                        }
-                    }
-                    else {
-                        cameraLockedY = true;
-                        if (cameraYPos + dif >= curYBoundary1 + SCREEN_SCROLL_UP) {
-                            cameraYPos += dif;
-                        }
-                        else {
-                            cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                        }
-                    }
-                }
-                else if (dif > 6) {
-                    dif = 6;
-                    if (cameraYPos + dif >= curYBoundary1 + SCREEN_SCROLL_UP) {
-                        cameraYPos += dif;
-                    }
-                    else {
-                        cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                    }
-                }
-                else {
-                    cameraLockedY = true;
-                    if (cameraYPos + dif >= curYBoundary1 + SCREEN_SCROLL_UP) {
-                        cameraYPos += dif;
-                    }
-                    else {
-                        cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                    }
-                }
+            else if (yPosDif < -16) {
+                yPosDif = -16;
             }
         }
         else {
-            int dif = targetY - cameraYPos;
-            if (targetY - cameraYPos <= 0) {
-                if (dif < -32 || abs(target->yvel) > 0x60000) {
-                    if (dif < -16) {
-                        dif = -16;
-                        if (cameraYPos + dif >= curYBoundary1 + SCREEN_SCROLL_UP) {
-                            cameraYPos += dif;
-                        }
-                        else {
-                            cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                        }
-                    }
-                    else {
-                        cameraLockedY = true;
-                        if (cameraYPos + dif >= curYBoundary1 + SCREEN_SCROLL_UP) {
-                            cameraYPos += dif;
-                        }
-                        else {
-                            cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                        }
-                    }
-                }
-                else if (dif < -6) {
-                    dif = -6;
-                    if (cameraYPos + dif >= curYBoundary1 + SCREEN_SCROLL_UP) {
-                        cameraYPos += dif;
-                    }
-                    else {
-                        cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                    }
-                }
-            }
-            else {
-                dif = 0;
-                if (abs(target->yvel) > 0x60000) {
-                    cameraLockedY = true;
-                    if (cameraYPos + dif >= curYBoundary1 + SCREEN_SCROLL_UP) {
-                        cameraYPos += dif;
-                    }
-                    else {
-                        cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                    }
-                }
-                else {
-                    cameraLockedY = true;
-                    if (cameraYPos + dif >= curYBoundary1 + SCREEN_SCROLL_UP) {
-                        cameraYPos += dif;
-                    }
-                    else {
-                        cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                    }
-                }
-            }
+            yPosDif       = 0;
+            cameraLockedY = true;
         }
     }
     else {
-        int dif  = targetY - cameraYPos;
-        int difY = 0;
-        if (targetY > cameraYPos) {
-            difY = dif - 32;
-            if (difY >= 0) {
-                if (difY >= 17)
-                    difY = 16;
-
-                cameraLockedY = false;
-                if (cameraYPos + difY >= curYBoundary1 + SCREEN_SCROLL_UP) {
-                    cameraYPos += difY;
-                }
-                else {
-                    cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                }
+        yPosDif = targetY - cameraYPos;
+        if (targetY - cameraYPos < 0) {
+            yPosDif       = 0;
+            cameraLockedY = true;
+        }
+        else if (yPosDif > 32 || abs(target->yvel) > 0x60000) {
+            if (yPosDif > 16) {
+                yPosDif = 16;
             }
             else {
-                cameraLockedY = false;
-                if (cameraYPos < curYBoundary1 + SCREEN_SCROLL_UP) {
-                    cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                }
+                cameraLockedY = true;
             }
         }
         else {
-            difY = dif + 32;
-            if (difY > 0) {
-                difY = 0;
-
-                cameraLockedY = false;
-                if (cameraYPos < curYBoundary1 + SCREEN_SCROLL_UP) {
-                    cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                }
-            }
-            else if (difY <= -17) {
-                difY = -16;
-
-                cameraLockedY = false;
-                if (cameraYPos + difY >= curYBoundary1 + SCREEN_SCROLL_UP) {
-                    cameraYPos += difY;
-                }
-                else {
-                    cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                }
+            if (yPosDif <= 6) {
+                cameraLockedY = true;
             }
             else {
-                cameraLockedY = false;
-                if (cameraYPos + difY >= curYBoundary1 + SCREEN_SCROLL_UP) {
-                    cameraYPos += difY;
-                }
-                else {
-                    cameraYPos = curYBoundary1 + SCREEN_SCROLL_UP;
-                }
+                yPosDif = 6;
             }
         }
     }
 
-    if (cameraYPos >= curYBoundary2 - SCREEN_SCROLL_DOWN - 1) {
+    int newCamY = cameraYPos + yPosDif;
+    if (newCamY <= curYBoundary1 + (SCREEN_SCROLL_UP - 1))
+        newCamY = curYBoundary1 + SCREEN_SCROLL_UP;
+    cameraYPos = newCamY;
+    if (curYBoundary2 - (SCREEN_SCROLL_DOWN - 1) <= newCamY) {
         cameraYPos = curYBoundary2 - SCREEN_SCROLL_DOWN;
     }
 
