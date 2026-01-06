@@ -13,13 +13,14 @@
     #endif
     
     // Aliases & Old Syntax Aliases
-    #define COMMON_SCRIPT_VAR_COUNT (56 + OLD_SYNTAX_SCRIPT_VAR_COUNT)
+    #define COMMON_SCRIPT_VAR_COUNT (57 + OLD_SYNTAX_SCRIPT_VAR_COUNT)
 #endif
 
 #include "Userdata.hpp"
 #include "Video.hpp"
 
 extern float networkPing;
+extern bool useDiscordRPC;
 
 #define SCRIPT_VAR_COUNT (COMMON_SCRIPT_VAR_COUNT + 0x1DF)
 int lineID = 0;
@@ -431,6 +432,8 @@ const char variableNames[][0x20] = {
     "system.timeHour",
     "system.timeMinute",
     "system.timeSecond",
+    "engine.gameType",
+    "discord.enableRPC"
 };
 #endif
 
@@ -1185,6 +1188,8 @@ enum ScrVar {
     VAR_SYSTEM_TIMEHOUR,
     VAR_SYSTEM_TIMEMINUTE,
     VAR_SYSTEM_TIMESECOND,
+    VAR_ENGINE_GAMETYPE,
+    VAR_DISCORD_ENABLERPC,
     VAR_MAX_CNT
 };
 
@@ -4783,6 +4788,9 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                         scriptEng.operands[i] = tm_now->tm_sec;
                         break;
                     }
+                    
+                    case VAR_ENGINE_GAMETYPE: scriptEng.operands[i] = Engine.gameType; break;
+                    case VAR_DISCORD_ENABLERPC: scriptEng.operands[i] = useDiscordRPC; break;
                 }
             }
             else if (opcodeType == SCRIPTVAR_INTCONST) { // int constant
@@ -6238,7 +6246,6 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
 #else
                 LoadTextFile(menu, scriptText, false);
 #endif
-                PrintLog("Using MENU_%d to load 'Data/Strings/%s'", scriptEng.operands[0] + 1, scriptText);
                 break;
             }
             case FUNC_GETTEXTINFO: {
@@ -7587,6 +7594,8 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                     case VAR_SYSTEM_TIMEHOUR: break;
                     case VAR_SYSTEM_TIMEMINUTE: break;
                     case VAR_SYSTEM_TIMESECOND: break;
+                    case VAR_ENGINE_GAMETYPE: break;
+                    case VAR_DISCORD_ENABLERPC: useDiscordRPC = scriptEng.operands[i]; break;
                 }
             }
             else if (opcodeType == SCRIPTVAR_INTCONST) { // int constant
