@@ -1135,12 +1135,14 @@ void FlipFrameBuffer(byte direction)
     int size = GFX_LINESIZE * SCREEN_YSIZE;
     int i;
     
+    // Fullscreen creates some sort of weird offset, so ill fix that here ig...?
+    
     switch (direction) {
     case FLIP_X:
         for (int y = 0; y < SCREEN_YSIZE; ++y) {
             for (int x = 0; x < GFX_LINESIZE; ++x) {
                 i = y * GFX_LINESIZE + x;
-                memcpy(&Engine.flipBuffer[i], &Engine.frameBuffer[y * GFX_LINESIZE + (GFX_LINESIZE - 7 - x)], sizeof(ushort));
+                memcpy(&Engine.flipBuffer[i], &Engine.frameBuffer[y * GFX_LINESIZE + (GFX_LINESIZE - 9 - Engine.isFullScreen - x)], sizeof(ushort));
             }
         }
         break;
@@ -1155,12 +1157,9 @@ void FlipFrameBuffer(byte direction)
         break;
 
     case FLIP_XY:
-        for (int y = 0; y < SCREEN_YSIZE; ++y) {
-            for (int x = 0; x < GFX_LINESIZE; ++x) {
-                i = y * GFX_LINESIZE + x;
-                memcpy(&Engine.flipBuffer[i], &Engine.frameBuffer[size - 7 - i], sizeof(ushort));
-            }
-        }
+		for (int idx = 0; idx < size; ++idx) {
+			memcpy(&Engine.flipBuffer[idx], &Engine.frameBuffer[size - 9 - Engine.isFullScreen - idx], sizeof(ushort));
+		}
         break;
     }
     
@@ -4949,10 +4948,12 @@ void DrawObjectAnimation(void *objScr, void *ent, int XPos, int YPos)
     SpriteFrame *frame         = &animFrames[sprAnim->frameListOffset + entity->frame];
     int rotation               = 0;
 
-    int entityScaleX = entity->scale;
-    int entityScaleY = entity->scale;
-    if (entity->scaleMode == 1)
-        entityScaleY = entity->yscale;
+    int entityScaleX = entity->xscale;
+    int entityScaleY = entity->yscale;
+    if (entity->xscale == 512 && entity->yscale == 512) {
+        entityScaleX = entity->scale;
+        entityScaleY = entity->scale;
+    }
 
     switch (sprAnim->rotationStyle) {
         case ROTSTYLE_NONE:

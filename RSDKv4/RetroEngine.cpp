@@ -496,7 +496,7 @@ void RetroEngine::Init()
         gameType = GAME_SONICESSENCE;
     }
 
-    if (strstr(gameWindowText, "Sonic 1 Forever")) {
+    if (strstr(gameWindowText, "Sonic Forever")) {
         gameType = GAME_SONIC1FOREVER;
     }
 
@@ -515,6 +515,10 @@ void RetroEngine::Init()
 
     if (strstr(gameWindowText, "Project SAP")) {
         gameType = GAME_PROJECT_SAP;
+    }
+
+    if (strstr(gameWindowText, "A Night at the Casino")) {
+        gameType = GAME_ANATC;
     }
 
     // Feel free to insert your own games!

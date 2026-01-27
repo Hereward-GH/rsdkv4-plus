@@ -478,7 +478,7 @@ void RefreshEngine()
         Engine.gameType = GAME_SONICESSENCE;
     }
 
-    if (strstr(Engine.gameWindowText, "Sonic 1 Forever")) {
+    if (strstr(Engine.gameWindowText, "Sonic Forever")) {
         Engine.gameType = GAME_SONIC1FOREVER;
     }
 
@@ -496,6 +496,10 @@ void RefreshEngine()
 
     if (strstr(Engine.gameWindowText, "Project SAP")) {
         Engine.gameType = GAME_PROJECT_SAP;
+    }
+
+    if (strstr(Engine.gameWindowText, "A Night at the Casino")) {
+        Engine.gameType = GAME_ANATC;
     }
 
     // Feel free to insert your own games!

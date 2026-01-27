@@ -112,8 +112,8 @@ const char variableNames[][0x20] = {
     "object.state",
     "object.rotation",
     "object.scale",
+    "object.xscale",
     "object.yscale",
-    "object.scaleMode",
     "object.priority",
     "object.drawOrder",
     "object.direction",
@@ -696,6 +696,7 @@ const FunctionInfo functions[] = {
     
     FunctionInfo("IntToStr", 3),
     FunctionInfo("StrLength", 2),
+    FunctionInfo("SetVariableByName", 2),
 };
 
 #if RETRO_USE_COMPILER
@@ -898,8 +899,8 @@ enum ScrVar {
     VAR_OBJECTSTATE,
     VAR_OBJECTROTATION,
     VAR_OBJECTSCALE,
+    VAR_OBJECTXSCALE,
     VAR_OBJECTYSCALE,
-    VAR_OBJECTSCALEMODE,
     VAR_OBJECTPRIORITY,
     VAR_OBJECTDRAWORDER,
     VAR_OBJECTDIRECTION,
@@ -1411,6 +1412,7 @@ enum ScrFunc {
     FUNC_SETUSERNAME,
     FUNC_INTTOSTR,
     FUNC_STRLENGTH,
+    FUNC_SETVARIABLEBYNAME,
     FUNC_MAX_CNT
 };
 
@@ -3082,6 +3084,7 @@ void CopyAliasStr(char *dest, char *text, bool arrayIndex)
     }
     dest[destPos] = 0;
 }
+
 bool CheckOpcodeType(char *text)
 {
     while (true) {
@@ -3093,6 +3096,169 @@ bool CheckOpcodeType(char *text)
             return false;
     }
     return true;
+}
+
+void ConvertAlias(char *funcBuf, char *arrayBuf) {
+    // Eg: temp0 = game.variable
+    for (int v = 0; v < globalVariablesCount; ++v) {
+        if (StrComp(funcBuf, globalVariableNames[v])) {
+            StrCopy(funcBuf, "global");
+            arrayBuf[0] = 0;
+            AppendIntegerToString(arrayBuf, v);
+        }
+    }
+
+    // Eg: temp0 = Function1
+    for (int f = 0; f < scriptFunctionCount; ++f) {
+        if (StrComp(funcBuf, scriptFunctionList[f].name)) {
+            funcBuf[0] = 0;
+            AppendIntegerToString(funcBuf, f);
+        }
+    }
+
+    // Eg: temp0 = TypeName[Player Object]
+    if (StrComp(funcBuf, "TypeName")) {
+        funcBuf[0] = '0';
+        funcBuf[1] = 0;
+
+        int o = 0;
+        for (; o < OBJECT_COUNT; ++o) {
+            if (StrComp(arrayBuf, typeNames[o])) {
+                funcBuf[0] = 0;
+                AppendIntegerToString(funcBuf, o);
+                break;
+            }
+        }
+
+        if (o == OBJECT_COUNT)
+            PrintLog("WARNING: Unknown typename \"%s\", on line %d", arrayBuf, lineID);
+    }
+
+#if !RETRO_USE_ORIGINAL_CODE
+    // Eg: temp0 = SfxName[Jump]
+    if (StrComp(funcBuf, "SfxName")) {
+        funcBuf[0] = '0';
+        funcBuf[1] = 0;
+
+        int s = 0;
+        for (; s < SFX_COUNT; ++s) {
+            if (StrComp(arrayBuf, sfxNames[s])) {
+                funcBuf[0] = 0;
+                AppendIntegerToString(funcBuf, s);
+                break;
+            }
+        }
+
+        if (s == SFX_COUNT)
+            PrintLog("WARNING: Unknown sfxName \"%s\", on line %d", arrayBuf, lineID);
+    }
+
+    // Eg: temp0 = VarName[player.lives]
+    if (StrComp(funcBuf, "VarName")) {
+        funcBuf[0] = '0';
+        funcBuf[1] = 0;
+
+        int v = 0;
+        for (; v < globalVariablesCount; ++v) {
+            if (StrComp(arrayBuf, globalVariableNames[v])) {
+                funcBuf[0] = 0;
+                AppendIntegerToString(funcBuf, v);
+                break;
+            }
+        }
+
+        if (v == globalVariablesCount)
+            PrintLog("WARNING: Unknown varName \"%s\", on line %d", arrayBuf, lineID);
+    }
+
+    // Eg: temp0 = AchievementName[Ring King]
+    if (StrComp(funcBuf, "AchievementName")) {
+        funcBuf[0] = '0';
+        funcBuf[1] = 0;
+
+        int a = 0;
+        for (; a < achievementCount; ++a) {
+            char buf[0x40];
+            char *str = achievements[a].name;
+            int pos   = 0;
+
+            while (*str) {
+                if (*str != ' ')
+                    buf[pos++] = *str;
+                str++;
+            }
+            buf[pos] = 0;
+
+            if (StrComp(arrayBuf, buf)) {
+                funcBuf[0] = 0;
+                AppendIntegerToString(funcBuf, a);
+                break;
+            }
+        }
+
+        if (a == achievementCount)
+            PrintLog("WARNING: Unknown AchievementName \"%s\", on line %d", arrayBuf, lineID);
+    }
+
+    // Eg: temp0 = PlayerName[SONIC]
+    if (StrComp(funcBuf, "PlayerName")) {
+        funcBuf[0] = '0';
+        funcBuf[1] = 0;
+
+        std::string buf;
+        int pos = 0;
+        int p   = 0;
+
+        for (; p < playerCount; ++p) {
+            buf.clear();
+            const char *str = playerNames[p].c_str();
+            pos = 0;
+
+            while (*str) {
+                if (*str != ' ')
+                    buf[pos++] = *str;
+                str++;
+            }
+            buf[pos] = 0;
+
+            if (StrComp(arrayBuf, buf.c_str())) {
+                funcBuf[0] = 0;
+                AppendIntegerToString(funcBuf, p);
+                break;
+            }
+        }
+
+        if (p == playerCount)
+            PrintLog("WARNING: Unknown PlayerName \"%s\", on line %d", arrayBuf, lineID);
+    }
+
+    // Eg: temp0 = StageName[R - GREEN HILL ZONE 1]
+    if (StrComp(funcBuf, "StageName")) {
+        funcBuf[0] = '0';
+        funcBuf[1] = 0;
+
+        int s = -1;
+        if (StrLength(arrayBuf) >= 2) {
+            char list = arrayBuf[0];
+            switch (list) {
+                case 'P': list = STAGELIST_PRESENTATION; break;
+                case 'R': list = STAGELIST_REGULAR; break;
+                case 'S': list = STAGELIST_SPECIAL; break;
+                case 'B': list = STAGELIST_BONUS; break;
+            }
+            s = GetSceneID(list, &arrayBuf[2]);
+        }
+
+        if (s == -1) {
+            char buf[0x40];
+            sprintf(buf, "WARNING: Unknown StageName \"%s\", on line %d", arrayBuf, lineID);
+            PrintLog(buf);
+            s = 0;
+        }
+        funcBuf[0] = 0;
+        AppendIntegerToString(funcBuf, s);
+    }
+#endif
 }
 
 void ParseScriptFile(char *scriptName, int scriptID)
@@ -3907,12 +4073,12 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                         scriptEng.operands[i] = objectEntityList[arrayVal].scale;
                         break;
                     }
-                    case VAR_OBJECTYSCALE: {
-                        scriptEng.operands[i] = objectEntityList[arrayVal].yscale;
+                    case VAR_OBJECTXSCALE: {
+                        scriptEng.operands[i] = objectEntityList[arrayVal].xscale;
                         break;
                     }
-                    case VAR_OBJECTSCALEMODE: {
-                        scriptEng.operands[i] = objectEntityList[arrayVal].scaleMode;
+                    case VAR_OBJECTYSCALE: {
+                        scriptEng.operands[i] = objectEntityList[arrayVal].yscale;
                         break;
                     }
                     case VAR_OBJECTPRIORITY: {
@@ -4800,10 +4966,12 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
         SpriteFrame *spriteFrame = nullptr;
 
         // sort out scale modes here since funcs hate me
-        int entityScaleX = entity->scale;
-        int entityScaleY = entity->scale;
-        if (entity->scaleMode == 1)
-            entityScaleY = entity->yscale;
+        int entityScaleX = entity->xscale;
+        int entityScaleY = entity->yscale;
+        if (entity->xscale == 512 && entity->yscale == 512) {
+            entityScaleX = entity->scale;
+            entityScaleY = entity->scale;
+        }
 
         // String Variable Functions
         switch (opcode) {
@@ -4817,7 +4985,7 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                     scriptEng.operandStr[0][0] = '\0'; //Null-terminate the start of the string
                 break;
             }
-            case FUNC_INTTOSTR: { //IntToStr(string store, int numToConvert, int conversionType)
+            case FUNC_INTTOSTR: //IntToStr(string store, int numToConvert, int conversionType)
                 switch (scriptEng.operands[2]) {
                     default: break;
                     case 0: sprintf(scriptEng.operandStr[0], "%d", scriptEng.operands[1]); break; //Decimal
@@ -4825,8 +4993,14 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                     case 2: sprintf(scriptEng.operandStr[0], "%X", scriptEng.operands[1]); break; //Uppercase HEX
                 }
                 break;
-            }
             case FUNC_STRLENGTH: scriptEng.operands[0] = StrLength(scriptText); break; //StrLength(int store, string lengthOf)
+            case FUNC_SETVARIABLEBYNAME: //SetVariableByName(string varName, int value)
+                for (int v = 0; v < globalVariablesCount; ++v) {
+                    if (StrComp(scriptEng.operandStr[0], globalVariableNames[v])) {
+                        globalVariables[v] = scriptEng.operands[1];
+                    }
+                }
+                break;
         }
 
         // Functions
@@ -5802,6 +5976,8 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                 newEnt->priority           = PRIORITY_BOUNDS;
                 newEnt->drawOrder          = 3;
                 newEnt->scale              = 512;
+                newEnt->xscale             = 512;
+                newEnt->yscale             = 512;
                 newEnt->inkEffect          = INK_NONE;
                 newEnt->objectInteractions = true;
                 newEnt->visible            = true;
@@ -5851,6 +6027,8 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                 temp->priority           = PRIORITY_ACTIVE;
                 temp->drawOrder          = 3;
                 temp->scale              = 512;
+                temp->xscale             = 512;
+                temp->yscale             = 512;
                 temp->inkEffect          = INK_NONE;
                 temp->objectInteractions = true;
                 temp->visible            = true;
@@ -6936,12 +7114,12 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                         objectEntityList[arrayVal].scale = scriptEng.operands[i];
                         break;
                     }
-                    case VAR_OBJECTYSCALE: {
-                        objectEntityList[arrayVal].yscale = scriptEng.operands[i];
+                    case VAR_OBJECTXSCALE: {
+                        objectEntityList[arrayVal].xscale = scriptEng.operands[i];
                         break;
                     }
-                    case VAR_OBJECTSCALEMODE: {
-                        objectEntityList[arrayVal].scaleMode = scriptEng.operands[i];
+                    case VAR_OBJECTYSCALE: {
+                        objectEntityList[arrayVal].yscale = scriptEng.operands[i];
                         break;
                     }
                     case VAR_OBJECTPRIORITY: {
