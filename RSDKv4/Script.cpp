@@ -25,6 +25,9 @@ extern bool useDiscordRPC;
 #define SCRIPT_VAR_COUNT (COMMON_SCRIPT_VAR_COUNT + 0x1DF)
 int lineID = 0;
 
+int end = 0;
+int front = 0;
+
 enum ScriptVarType { VAR_ALIAS, VAR_STATICVALUE, VAR_TABLE };
 enum ScriptVarAccessModifier { ACCESS_NONE, ACCESS_PUBLIC, ACCESS_PRIVATE };
 
@@ -697,6 +700,8 @@ const FunctionInfo functions[] = {
     FunctionInfo("IntToStr", 3),
     FunctionInfo("StrLength", 2),
     FunctionInfo("SetVariableByName", 2),
+    FunctionInfo("ConvertStringToByte", 3),
+    FunctionInfo("ConvertByteToString", 3),
 };
 
 #if RETRO_USE_COMPILER
@@ -1413,6 +1418,8 @@ enum ScrFunc {
     FUNC_INTTOSTR,
     FUNC_STRLENGTH,
     FUNC_SETVARIABLEBYNAME,
+    FUNC_CONVERTSTRINGTOBYTE,
+    FUNC_CONVERTBYTETOSTRING,
     FUNC_MAX_CNT
 };
 
@@ -5001,6 +5008,16 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                     }
                 }
                 break;
+            case FUNC_CONVERTSTRINGTOBYTE: //ConvertStringToByte(string text, int index, int store)
+                if (scriptEng.operands[1] < StrLength(scriptText))
+                    scriptEng.operands[2] = scriptEng.operandStr[0][scriptEng.operands[1]] + '\0';
+                break;
+            case FUNC_CONVERTBYTETOSTRING: //ConvertByteToString(string store, int index, int byte)
+                scriptEng.operandStr[0][scriptEng.operands[1]] = scriptEng.operands[2] + '\0';
+                
+                if (scriptEng.operands[1] >= StrLength(scriptText))
+                    scriptEng.operandStr[0][scriptEng.operands[1] + 1] = '\0';
+                break;
         }
 
         // Functions
@@ -6417,9 +6434,14 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                 TextMenu *menu = &gameMenu[scriptEng.operands[1]];
                 switch (scriptEng.operands[2]) {
                     case TEXTINFO_TEXTDATA:
-                        scriptEng.operands[0] = menu->textData[menu->entryStart[scriptEng.operands[3]] + scriptEng.operands[4]];
+						end = scriptEng.operands[4] << 1;
+						front = end + 1;
+                        end = scriptEng.operands[0] = menu->textData[menu->entryStart[scriptEng.operands[3]] + end];
+                        front = scriptEng.operands[0] = (menu->textData[menu->entryStart[scriptEng.operands[3]] + front]) << 8;
+						scriptEng.operands[0] = end + front;
+						//scriptEng.operands[0] = menu->textData[menu->entryStart[scriptEng.operands[3]] + end];
                         break;
-                    case TEXTINFO_TEXTSIZE: scriptEng.operands[0] = menu->entrySize[scriptEng.operands[3]]; break;
+                    case TEXTINFO_TEXTSIZE: scriptEng.operands[0] = menu->entrySize[scriptEng.operands[3]] >> 1; break;
                     case TEXTINFO_ROWCOUNT: scriptEng.operands[0] = menu->rowCount; break;
                 }
                 break;
@@ -6708,13 +6730,9 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
 
             case FUNC_CHECKUPDATES: {
                 opcodeSize = 0;
-                if (strncmp(scriptText, "https://", 8) == 0)
-                    sprintf(temporar, "%s", scriptText);
-                else
-                    sprintf(temporar, "https://%s", scriptText);
+                sprintf(temporar, "https://%s", scriptText);
 
 				PrintLog("Checking version: %s", temporar);
-
 				if(CheckUpdates(temporar) >= 0) // fancy
 					PrintLog("Successfully loaded website!: %s", temporar);
 				else
@@ -6724,13 +6742,9 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
 
             case FUNC_LOADWEBSITE: {
             	opcodeSize = 0;
-                if (strncmp(scriptText, "https://", 8) == 0)
-                    sprintf(temporar, "%s", scriptText);
-                else
-                    sprintf(temporar, "https://%s", scriptText);
+                sprintf(temporar, "https://%s", scriptText);
 
 				PrintLog("Loading website: %s", temporar);
-
 				if(SDL_OpenURL(temporar)) // fancy
 					PrintLog("Successfully loaded website!: %s", temporar);
 				else
@@ -6758,10 +6772,7 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                 opcodeSize = 0;
 #if RETRO_USE_DISCORD_SDK
                 if (scriptEng.operands[1]) {
-                    if (strncmp(scriptText, "https://", 8) == 0)
-                        sprintf(temporar, "%s", scriptText);
-                    else
-                        sprintf(temporar, "https://%s", scriptText);
+                    sprintf(temporar, "https://%s", scriptText);
                 } else {
                     sprintf(temporar, "%s", scriptText);
                 }
@@ -6783,10 +6794,7 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                 opcodeSize = 0;
 #if RETRO_USE_DISCORD_SDK
                 if (scriptEng.operands[1]) {
-                    if (strncmp(scriptText, "https://", 8) == 0)
-                        sprintf(temporar, "%s", scriptText);
-                    else
-                        sprintf(temporar, "https://%s", scriptText);
+                    sprintf(temporar, "https://%s", scriptText);
                 } else {
                     sprintf(temporar, "%s", scriptText);
                 }
@@ -6927,7 +6935,7 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
                 static int prevControllerCount = 0;
                 int currentControllerCount = 0;
 
-                // Count currently connected controllers without opening them (much faster)
+                // Count currently connected controllers without opening them
                 int numJoysticks = SDL_NumJoysticks();
                 for (int i = 0; i < numJoysticks; ++i) {
                     if (SDL_IsGameController(i)) {
