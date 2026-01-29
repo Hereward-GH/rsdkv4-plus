@@ -20,7 +20,7 @@ else()
 endif()
 
 option(RETRO_USE_CURL "Compiles with cURL." OFF)
-option(RETRO_ACCEPT_OLD_SYNTAX "Allows compatibility with the old syntax." OFF)
+option(RETRO_ACCEPT_OLD_SYNTAX "Allows compatibility with the old syntax." ON)
 
 if(ANDROID)
     option(RETRO_USE_DISCORD "Adds custom Discord RPC that says what zone you're on, the character you're playing as and some of your stats in the stage." OFF)
@@ -34,7 +34,7 @@ option(RETRO_VANILLA_LIKE "Brings back the normal v4 limitations." OFF)
 
 set(RETRO_ICON_NAME "RSDKv4 Decomp Icon.ico" CACHE STRING "Icon filename to embed in the executable. Defaults to RSDKv4 Decomp Icon.")
 
-option(RETRO_USE_EOS "Adds Epic Online Services SDK support for multiple network features." OFF)  
+option(RETRO_USE_EOS "Adds Epic Online Services SDK support for multiple network features." ON)  
 
 set(STEAMWORKS_SDK_DIR "${CMAKE_SOURCE_DIR}/dependencies/all/steamworks_sdk")
 set(DISCORD_SDK_DIR "${CMAKE_SOURCE_DIR}/dependencies/all/discord_game_sdk")
