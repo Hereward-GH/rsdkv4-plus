@@ -8,7 +8,9 @@
 #endif
 
 #define ACHIEVEMENT_COUNT (0x40)
-#define LEADERBOARD_COUNT (0x80)
+// was 0x80, but not in a vanilla-like check though...
+// because that would cause save files to be different depending on build flags
+#define LEADERBOARD_COUNT (0x180)
 
 #define SAVEDATA_SIZE (0x2000)
 
