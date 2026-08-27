@@ -1005,7 +1005,12 @@ void LoadActLayout()
         FileRead(&fileBuffer[0], 2);
         int objectCount = fileBuffer[0] + (fileBuffer[1] << 8);
 #if !RETRO_USE_ORIGINAL_CODE
-        if (objectCount > 0x400)
+#if RETRO_VANILLA_LIKE
+        int totalObjectCount = 0x400;
+#else
+        int totalObjectCount = 0x800;
+#endif
+        if (objectCount > totalObjectCount)
             PrintLog("WARNING: object count %d exceeds the object limit", objectCount);
 #endif
 
