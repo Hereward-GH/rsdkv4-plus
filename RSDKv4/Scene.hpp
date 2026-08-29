@@ -10,7 +10,7 @@
 #if RETRO_VANILLA_LIKE
 #define TILE_COUNT    (0x400)
 #else
-#define TILE_COUNT    (0x1000)
+#define TILE_COUNT    (0x800)
 #endif
 #define TILE_SIZE     (0x10)
 #define CHUNK_SIZE    (0x80)

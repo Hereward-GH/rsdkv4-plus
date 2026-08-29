@@ -1611,16 +1611,16 @@ enum ScrFunc {
     FUNC_LOADWEBSITE,
 
     // Discord presence
-    FUNC_SET_PRESENCE_NAME,
-    FUNC_SET_PRESENCE_DETAILS,
-    FUNC_SET_PRESENCE_STATE,
-    FUNC_SET_PRESENCE_LARGEIMAGE,
-    FUNC_SET_PRESENCE_LARGETEXT,
-    FUNC_SET_PRESENCE_SMALLIMAGE,
-    FUNC_SET_PRESENCE_SMALLTEXT,
-    FUNC_UPDATE_PRESENCE,
-    FUNC_CLEAR_PRESENCE,
-    FUNC_CLEAR_PRESENCE_TYPE,
+    FUNC_SETPRESENCENAME,
+    FUNC_SETPRESENCEDETAILS,
+    FUNC_SETPRESENCESTATE,
+    FUNC_SETPRESENCELARGEIMAGE,
+    FUNC_SETPRESENCELARGETEXT,
+    FUNC_SETPRESENCESMALLIMAGE,
+    FUNC_SETPRESENCESMALLTEXT,
+    FUNC_UPDATEPRESENCE,
+    FUNC_CLEARPRESENCE,
+    FUNC_CLEARPRESENCETYPE,
 
     // Controller management
     FUNC_VIBRATECONTROLLER,
@@ -7224,28 +7224,28 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
             }
 
             // Discord presence
-            case FUNC_SET_PRESENCE_NAME: {
+            case FUNC_SETPRESENCENAME: {
                 opcodeSize = 0;
 #if RETRO_USE_DISCORD_SDK
                 API_Discord_SetPresence(scriptText, PRESENCE_ACTIVITY_NAME);
 #endif
                 break;
             }
-            case FUNC_SET_PRESENCE_DETAILS: {
+            case FUNC_SETPRESENCEDETAILS: {
                 opcodeSize = 0;
 #if RETRO_USE_DISCORD_SDK
                 API_Discord_SetPresence(scriptText, PRESENCE_ACTIVITY_DETAILS);
 #endif
                 break;
             }
-            case FUNC_SET_PRESENCE_STATE: {
+            case FUNC_SETPRESENCESTATE: {
                 opcodeSize = 0;
 #if RETRO_USE_DISCORD_SDK
                 API_Discord_SetPresence(scriptText, PRESENCE_ACTIVITY_STATE);
 #endif
                 break;
             }
-            case FUNC_SET_PRESENCE_LARGEIMAGE: {
+            case FUNC_SETPRESENCELARGEIMAGE: {
                 opcodeSize = 0;
 #if RETRO_USE_DISCORD_SDK
                 if (scriptEng.operands[1]) {
@@ -7258,14 +7258,14 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
 #endif
                 break;
             }
-            case FUNC_SET_PRESENCE_LARGETEXT: {
+            case FUNC_SETPRESENCELARGETEXT: {
                 opcodeSize = 0;
 #if RETRO_USE_DISCORD_SDK
                 API_Discord_SetPresence(scriptText, PRESENCE_ASSET_LARGETEXT);
 #endif
                 break;
             }
-            case FUNC_SET_PRESENCE_SMALLIMAGE: {
+            case FUNC_SETPRESENCESMALLIMAGE: {
                 opcodeSize = 0;
 #if RETRO_USE_DISCORD_SDK
                 if (scriptEng.operands[1]) {
@@ -7278,28 +7278,28 @@ void ProcessScript(int scriptCodeStart, int jumpTableStart, byte scriptEvent)
 #endif
                 break;
             }
-            case FUNC_SET_PRESENCE_SMALLTEXT: {
+            case FUNC_SETPRESENCESMALLTEXT: {
                 opcodeSize = 0;
 #if RETRO_USE_DISCORD_SDK
                 API_Discord_SetPresence(scriptText, PRESENCE_ASSET_SMALLTEXT);
 #endif
                 break;
             }
-            case FUNC_UPDATE_PRESENCE: {
+            case FUNC_UPDATEPRESENCE: {
                 opcodeSize = 0;
 #if RETRO_USE_DISCORD_SDK
                 API_Discord_UpdatePresence();
 #endif
                 break;
             }
-            case FUNC_CLEAR_PRESENCE: {
+            case FUNC_CLEARPRESENCE: {
                 opcodeSize = 0;
 #if RETRO_USE_DISCORD_SDK
                 API_Discord_ClearPresence();
 #endif
                 break;
             }
-            case FUNC_CLEAR_PRESENCE_TYPE: {
+            case FUNC_CLEARPRESENCETYPE: {
                 opcodeSize = 0;
 #if RETRO_USE_DISCORD_SDK
                 // value = presence type   
