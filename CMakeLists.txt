@@ -16,7 +16,7 @@ option(RETRO_USE_STEAM "Enables Plus if Origins Plus is found via Steam API." OF
 option(RETRO_UPDATE_CHECKER "Enables or disables the update checker." OFF)
 option(RETRO_USE_CURL "Compiles with cURL." OFF) # RETRO_UPDATE_CHECKER forces this ON
 
-option(RETRO_ACCEPT_OLD_SYNTAX "Allows compatibility with the old syntax." OFF)
+option(RETRO_ACCEPT_OLD_SYNTAX "Allows compatibility with the old syntax." ON)
 
 option(RETRO_USE_DISCORD "Adds custom Discord RPC features usable by mods." OFF)
 
