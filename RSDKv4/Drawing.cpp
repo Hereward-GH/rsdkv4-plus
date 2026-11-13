@@ -1340,37 +1340,45 @@ void FlipFrameBuffer(byte direction)
     switch (direction) {
     case FLIP_X:
         for (int y = 0; y < SCREEN_YSIZE; ++y) {
-            for (int x = 0; x < GFX_LINESIZE; ++x) {
-                i = y * GFX_LINESIZE + x;
-                memcpy(&Engine.flipBuffer[i], &Engine.frameBuffer[y * GFX_LINESIZE + (GFX_LINESIZE - 9 - Engine.isFullScreen - x)], sizeof(ushort));
+            for (int x = 0; x < SCREEN_XSIZE; ++x) {
+                Engine.flipBuffer[y * GFX_LINESIZE + x] = Engine.frameBuffer[y * GFX_LINESIZE + ((SCREEN_XSIZE - x) - 1)];
             }
         }
+		memcpy(Engine.frameBuffer, Engine.flipBuffer, size * sizeof(ushort));
         break;
 
     case FLIP_Y:
         for (int y = 0; y < SCREEN_YSIZE; ++y) {
             for (int x = 0; x < GFX_LINESIZE; ++x) {
                 i = y * GFX_LINESIZE + x;
-                memcpy(&Engine.flipBuffer[i], &Engine.frameBuffer[(SCREEN_YSIZE - 1 - y) * GFX_LINESIZE + (i % GFX_LINESIZE)], sizeof(ushort));
+                Engine.flipBuffer[i] = Engine.frameBuffer[(SCREEN_YSIZE - 1 - y) * GFX_LINESIZE + (i % GFX_LINESIZE)];
             }
         }
+		memcpy(Engine.frameBuffer, Engine.flipBuffer, size * sizeof(ushort));
         break;
 
     case FLIP_XY:
-		for (int idx = 0; idx < size; ++idx) {
-			memcpy(&Engine.flipBuffer[idx], &Engine.frameBuffer[size - 9 - Engine.isFullScreen - idx], sizeof(ushort));
-		}
+        for (int y = 0; y < SCREEN_YSIZE; ++y) {
+            for (int x = 0; x < SCREEN_XSIZE; ++x) {
+                Engine.flipBuffer[y * GFX_LINESIZE + x] = Engine.frameBuffer[y * GFX_LINESIZE + ((SCREEN_XSIZE - x) - 1)];
+            }
+        }
+        for (int y = 0; y < SCREEN_YSIZE; ++y) {
+            for (int x = 0; x < GFX_LINESIZE; ++x) {
+                i = y * GFX_LINESIZE + x;
+                Engine.frameBuffer[i] = Engine.flipBuffer[(SCREEN_YSIZE - 1 - y) * GFX_LINESIZE + (i % GFX_LINESIZE)];
+            }
+        }
         break;
     }
     
-    memcpy(Engine.frameBuffer, Engine.flipBuffer, size * sizeof(ushort));
 }
 
 void DrawObjectList(int Layer)
 {
     // only flip if we need to!!
     // if the previous draw layer is flipped, dont flip again!!
-    // this saves ram usage!!
+    // this saves cpu usage!! (but will also draw tile layers backwards in the first 5 layers - ill redo this whole thing eventually)
     if (Layer > 0 && camera[currentCamera].layerDir[Layer - 1] != camera[currentCamera].layerDir[Layer])
         FlipFrameBuffer(camera[currentCamera].layerDir[Layer]);
     
@@ -1386,7 +1394,7 @@ void DrawObjectList(int Layer)
     
     // only flip again if we need to!!
     // if the next draw layer is flipped, dont flip again!!
-    // this saves more ram usage!!
+    // this saves more cpu usage!! (but will also draw tile layers backwards in the first 5 layers - ill redo this whole thing eventually)
     if (Layer == DRAWLAYER_COUNT - 1 || (Layer < DRAWLAYER_COUNT - 1 && camera[currentCamera].layerDir[Layer + 1] != camera[currentCamera].layerDir[Layer]))
         FlipFrameBuffer(camera[currentCamera].layerDir[Layer]);
 }
